@@ -1,0 +1,7 @@
+/storage/*.sqlite
+/storage/*.sqlite-*
+/data/initial.csv
+/public/uploads/*
+!/public/uploads/.gitkeep
+/.env
+.DS_Store
