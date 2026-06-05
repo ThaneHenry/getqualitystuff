@@ -3,44 +3,39 @@
 /** @var array $categories */
 /** @var array $filters */
 $hasSearch = trim((string) ($filters['q'] ?? '')) !== '' || trim((string) ($filters['category'] ?? '')) !== '';
+$resultCountLabel = $hasSearch
+    ? (count($results) === 1 ? 'result' : 'results')
+    : (count($results) === 1 ? 'brand' : 'brands');
 ?>
 <section class="page-header">
     <div>
         <p class="eyebrow"><?= $hasSearch ? 'Results' : 'Brands' ?></p>
-        <h1><?= $hasSearch ? 'Matching brands' : 'Brand directory' ?></h1>
+        <h1><?= $hasSearch ? 'Matching results' : 'Brand directory' ?></h1>
     </div>
-    <form class="search-panel search-panel--compact" method="get" action="/brands">
+    <form class="search-panel search-panel--compact" method="get" action="/search">
         <div class="search-panel__main">
-            <input type="search" name="q" placeholder="Search brands, values, locations, categories" value="<?= e($filters['q'] ?? '') ?>">
-            <button type="submit">Search</button>
-        </div>
-        <div class="search-panel__filters">
-            <select name="category">
-                <option value="">All categories</option>
-                <?php foreach ($categories as $category): ?>
-                    <option value="<?= e($category['slug']) ?>" <?= ($filters['category'] ?? '') === $category['slug'] ? 'selected' : '' ?>>
-                        <?= e($category['name']) ?>
-                    </option>
-                <?php endforeach; ?>
-            </select>
-            <select name="sort">
-                <?php foreach (['featured' => 'Featured first', 'score' => 'Highest score', 'newest' => 'Newest'] as $value => $label): ?>
-                    <option value="<?= e($value) ?>" <?= ($filters['sort'] ?? 'featured') === $value ? 'selected' : '' ?>><?= e($label) ?></option>
-                <?php endforeach; ?>
-            </select>
+            <div class="search-panel__input-wrap">
+                <input type="search" name="q" placeholder="Search brands, stores, values, locations, categories" value="<?= e($filters['q'] ?? '') ?>">
+                <button class="search-panel__icon-submit" type="submit" aria-label="Search">
+                    <svg viewBox="0 0 24 24" aria-hidden="true">
+                        <path d="m21 21-4.35-4.35"></path>
+                        <circle cx="11" cy="11" r="7"></circle>
+                    </svg>
+                </button>
+            </div>
         </div>
     </form>
 </section>
 
 <section class="directory-results" aria-labelledby="results-heading">
     <div class="section-heading">
-        <h2 id="results-heading"><?= e(count($results)) ?> <?= count($results) === 1 ? 'brand' : 'brands' ?></h2>
+        <h2 id="results-heading"><?= e(count($results)) ?> <?= e($resultCountLabel) ?></h2>
     </div>
     <div class="directory-grid">
     <?php if (!$results): ?>
         <article class="empty-state">
-            <h2>No brands found</h2>
-            <p>Try a broader search or clear the category filter.</p>
+            <h2><?= $hasSearch ? 'No results found' : 'No brands found' ?></h2>
+            <p>Try a broader search.</p>
         </article>
     <?php endif; ?>
 

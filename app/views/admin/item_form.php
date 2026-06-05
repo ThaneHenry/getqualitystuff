@@ -28,6 +28,7 @@ $isEdit = !empty($item);
     <label>Item URL <input type="url" name="url" value="<?= e($item['url'] ?? '') ?>"></label>
     <label>Image URL <input type="url" name="image_url" value="<?= e($item['image_url'] ?? '') ?>"></label>
     <label class="checkbox-label"><input type="checkbox" name="featured" value="1" <?= !empty($item['featured']) ? 'checked' : '' ?>> Featured</label>
+    <label class="checkbox-label"><input type="checkbox" name="popular" value="1" <?= !empty($item['popular']) ? 'checked' : '' ?>> Popular</label>
 
     <?php require __DIR__ . '/score_fields.php'; ?>
 

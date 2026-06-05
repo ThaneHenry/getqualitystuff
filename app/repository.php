@@ -155,6 +155,56 @@ function list_items(?string $search = null): array
     return $stmt->fetchAll();
 }
 
+function store_like_where_sql(): string
+{
+    return "(
+        lower(COALESCE(c.name, '')) IN ('marketplace', 'store', 'stores', 'retailer', 'retail')
+        OR lower(b.name) LIKE '%store%'
+        OR lower(b.description) LIKE '%store%'
+        OR lower(b.description) LIKE '%stocks%'
+        OR lower(b.description) LIKE '%stockist%'
+        OR lower(b.description) LIKE '%retailer%'
+        OR lower(b.description) LIKE '%marketplace%'
+        OR lower(b.notes) LIKE '%store%'
+        OR lower(b.notes) LIKE '%stocks%'
+        OR lower(b.notes) LIKE '%stockist%'
+        OR lower(b.notes) LIKE '%retailer%'
+        OR lower(b.notes) LIKE '%marketplace%'
+    )";
+}
+
+function list_stores(?int $limit = null): array
+{
+    $limitSql = $limit === null ? '' : ' LIMIT :limit';
+    $stmt = db()->prepare(
+        "SELECT
+            b.id,
+            b.name,
+            b.slug,
+            b.description,
+            b.url,
+            b.image_url,
+            b.company_location,
+            b.featured,
+            c.name AS category_name,
+            AVG(s.score) AS average_score,
+            COUNT(DISTINCT i.id) AS item_count
+        FROM brands b
+        LEFT JOIN categories c ON c.id = b.category_id
+        LEFT JOIN scores s ON s.entity_type = 'brand' AND s.entity_id = b.id
+        LEFT JOIN items i ON i.brand_id = b.id
+        WHERE " . store_like_where_sql() . "
+        GROUP BY b.id
+        ORDER BY b.featured DESC, average_score IS NULL ASC, average_score DESC, b.name ASC
+        {$limitSql}"
+    );
+    if ($limit !== null) {
+        $stmt->bindValue('limit', $limit, PDO::PARAM_INT);
+    }
+    $stmt->execute();
+    return $stmt->fetchAll();
+}
+
 function directory_results(array $filters): array
 {
     $params = [];
@@ -293,6 +343,95 @@ function normalize_search_text(string $value): string
     return trim(preg_replace('/\s+/', ' ', $value) ?: '');
 }
 
+function search_suggestions(int $limit = 80): array
+{
+    $brandStmt = db()->prepare(
+        "SELECT
+            b.name,
+            b.slug,
+            b.description,
+            c.name AS category_name,
+            b.company_location,
+            b.featured,
+            b.popular,
+            CASE WHEN " . store_like_where_sql() . " THEN 'Store' ELSE 'Brand' END AS suggestion_type,
+            AVG(s.score) AS average_score
+        FROM brands b
+        LEFT JOIN categories c ON c.id = b.category_id
+        LEFT JOIN scores s ON s.entity_type = 'brand' AND s.entity_id = b.id
+        GROUP BY b.id
+        ORDER BY b.popular DESC, b.featured DESC, average_score IS NULL ASC, average_score DESC, b.name ASC
+        LIMIT :limit"
+    );
+    $brandStmt->bindValue('limit', $limit, PDO::PARAM_INT);
+    $brandStmt->execute();
+
+    $brandSuggestions = array_map(static function (array $brand): array {
+        return [
+            'name' => $brand['name'],
+            'href' => '/brands/' . $brand['slug'],
+            'type' => $brand['suggestion_type'],
+            'meta' => $brand['category_name'] ?: 'Brand',
+            'description' => $brand['description'] ?: 'Brand details are being reviewed.',
+            'popular' => (bool) $brand['popular'],
+            'searchText' => normalize_search_text(implode(' ', [
+                $brand['name'] ?? '',
+                $brand['description'] ?? '',
+                $brand['category_name'] ?? '',
+                $brand['company_location'] ?? '',
+            ])),
+        ];
+    }, $brandStmt->fetchAll());
+
+    $itemStmt = db()->prepare(
+        "SELECT
+            i.name,
+            i.slug,
+            i.description,
+            i.popular,
+            c.name AS category_name,
+            b.name AS brand_name,
+            AVG(s.score) AS average_score
+        FROM items i
+        INNER JOIN brands b ON b.id = i.brand_id
+        LEFT JOIN categories c ON c.id = i.category_id
+        LEFT JOIN scores s ON s.entity_type = 'item' AND s.entity_id = i.id
+        GROUP BY i.id
+        ORDER BY i.popular DESC, i.featured DESC, average_score IS NULL ASC, average_score DESC, i.name ASC
+        LIMIT :limit"
+    );
+    $itemStmt->bindValue('limit', $limit, PDO::PARAM_INT);
+    $itemStmt->execute();
+
+    $itemSuggestions = array_map(static function (array $item): array {
+        return [
+            'name' => $item['name'],
+            'href' => '/items/' . $item['slug'],
+            'type' => 'Item',
+            'meta' => $item['brand_name'] ?: ($item['category_name'] ?: 'Item'),
+            'description' => $item['description'] ?: 'Item details are being reviewed.',
+            'popular' => (bool) $item['popular'],
+            'searchText' => normalize_search_text(implode(' ', [
+                $item['name'] ?? '',
+                $item['description'] ?? '',
+                $item['category_name'] ?? '',
+                $item['brand_name'] ?? '',
+            ])),
+        ];
+    }, $itemStmt->fetchAll());
+
+    $suggestions = array_merge($brandSuggestions, $itemSuggestions);
+    usort($suggestions, 'sort_search_suggestions');
+
+    return array_slice($suggestions, 0, $limit);
+}
+
+function sort_search_suggestions(array $a, array $b): int
+{
+    return ((int) $b['popular'] <=> (int) $a['popular'])
+        ?: strcmp($a['name'], $b['name']);
+}
+
 function featured_brands(int $limit = 6): array
 {
     $stmt = db()->prepare(
@@ -316,6 +455,29 @@ function featured_brands(int $limit = 6): array
         GROUP BY b.id
         ORDER BY average_score IS NULL ASC, average_score DESC, b.name ASC
         LIMIT :limit"
+    );
+    $stmt->bindValue('limit', $limit, PDO::PARAM_INT);
+    $stmt->execute();
+    return $stmt->fetchAll();
+}
+
+function featured_stores(int $limit = 6): array
+{
+    return list_stores($limit);
+}
+
+function featured_items(int $limit = 6): array
+{
+    $stmt = db()->prepare(
+        "SELECT i.*, b.name AS brand_name, b.slug AS brand_slug, c.name AS category_name, AVG(s.score) AS average_score
+         FROM items i
+         INNER JOIN brands b ON b.id = i.brand_id
+         LEFT JOIN categories c ON c.id = i.category_id
+         LEFT JOIN scores s ON s.entity_type = 'item' AND s.entity_id = i.id
+         WHERE i.featured = 1
+         GROUP BY i.id
+         ORDER BY average_score IS NULL ASC, average_score DESC, i.name ASC
+         LIMIT :limit"
     );
     $stmt->bindValue('limit', $limit, PDO::PARAM_INT);
     $stmt->execute();
@@ -415,6 +577,7 @@ function save_brand(array $data, ?int $id = null): int
         'warranty' => trim((string) ($data['warranty'] ?? '')),
         'notes' => trim((string) ($data['notes'] ?? '')),
         'featured' => bool_from_input($data['featured'] ?? 0),
+        'popular' => bool_from_input($data['popular'] ?? 0),
     ];
 
     if ($params['url'] !== '' && ($params['description'] === '' || $params['image_url'] === '')) {
@@ -429,8 +592,8 @@ function save_brand(array $data, ?int $id = null): int
 
     if ($id === null) {
         $stmt = db()->prepare(
-            'INSERT INTO brands (name, slug, category_id, description, url, image_url, company_location, manufacturing_location, warranty, notes, featured)
-             VALUES (:name, :slug, :category_id, :description, :url, :image_url, :company_location, :manufacturing_location, :warranty, :notes, :featured)'
+            'INSERT INTO brands (name, slug, category_id, description, url, image_url, company_location, manufacturing_location, warranty, notes, featured, popular)
+             VALUES (:name, :slug, :category_id, :description, :url, :image_url, :company_location, :manufacturing_location, :warranty, :notes, :featured, :popular)'
         );
         $stmt->execute($params);
         return (int) db()->lastInsertId();
@@ -442,7 +605,7 @@ function save_brand(array $data, ?int $id = null): int
          SET name = :name, slug = :slug, category_id = :category_id, description = :description,
              url = :url, image_url = :image_url, company_location = :company_location,
              manufacturing_location = :manufacturing_location, warranty = :warranty,
-             notes = :notes, featured = :featured, updated_at = CURRENT_TIMESTAMP
+             notes = :notes, featured = :featured, popular = :popular, updated_at = CURRENT_TIMESTAMP
          WHERE id = :id'
     );
     $stmt->execute($params);
@@ -469,12 +632,13 @@ function save_item(array $data, ?int $id = null): int
         'url' => trim((string) ($data['url'] ?? '')),
         'image_url' => trim((string) ($data['image_url'] ?? '')),
         'featured' => bool_from_input($data['featured'] ?? 0),
+        'popular' => bool_from_input($data['popular'] ?? 0),
     ];
 
     if ($id === null) {
         $stmt = db()->prepare(
-            'INSERT INTO items (brand_id, name, slug, category_id, description, url, image_url, featured)
-             VALUES (:brand_id, :name, :slug, :category_id, :description, :url, :image_url, :featured)'
+            'INSERT INTO items (brand_id, name, slug, category_id, description, url, image_url, featured, popular)
+             VALUES (:brand_id, :name, :slug, :category_id, :description, :url, :image_url, :featured, :popular)'
         );
         $stmt->execute($params);
         return (int) db()->lastInsertId();
@@ -484,7 +648,7 @@ function save_item(array $data, ?int $id = null): int
     $stmt = db()->prepare(
         'UPDATE items
          SET brand_id = :brand_id, name = :name, slug = :slug, category_id = :category_id,
-             description = :description, url = :url, image_url = :image_url, featured = :featured,
+             description = :description, url = :url, image_url = :image_url, featured = :featured, popular = :popular,
              updated_at = CURRENT_TIMESTAMP
          WHERE id = :id'
     );

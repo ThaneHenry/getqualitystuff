@@ -20,7 +20,7 @@
         <h2>Brands</h2>
         <?php foreach ($brands as $brand): ?>
             <div class="admin-row">
-                <span><?= e($brand['name']) ?></span>
+                <span><?= e($brand['name']) ?><?php if (!empty($brand['popular'])): ?> <small>Popular</small><?php endif; ?></span>
                 <a href="/admin/brands/<?= e((string) $brand['id']) ?>/edit">Edit</a>
             </div>
         <?php endforeach; ?>
@@ -29,7 +29,7 @@
         <h2>Items</h2>
         <?php foreach ($items as $item): ?>
             <div class="admin-row">
-                <span><?= e($item['name']) ?> <small><?= e($item['brand_name']) ?></small></span>
+                <span><?= e($item['name']) ?> <small><?= e($item['brand_name']) ?><?= !empty($item['popular']) ? ' · Popular' : '' ?></small></span>
                 <a href="/admin/items/<?= e((string) $item['id']) ?>/edit">Edit</a>
             </div>
         <?php endforeach; ?>

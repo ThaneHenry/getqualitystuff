@@ -27,8 +27,25 @@ function route(string $path, string $method): void
     if ($path === '/') {
         render('home', [
             'title' => 'Home',
-            'featuredBrands' => featured_brands(6),
-            'latestNews' => latest_news_article(),
+            'featuredBrands' => featured_brands(3),
+            'featuredStores' => featured_stores(3),
+            'featuredItems' => featured_items(3),
+            'searchSuggestions' => search_suggestions(),
+            'categories' => all_categories(),
+            'filters' => [
+                'q' => $_GET['q'] ?? '',
+                'category' => $_GET['category'] ?? '',
+                'sort' => $_GET['sort'] ?? 'featured',
+            ],
+        ]);
+        return;
+    }
+
+    if ($path === '/search') {
+        $hasSearch = trim((string) ($_GET['q'] ?? '')) !== '' || trim((string) ($_GET['category'] ?? '')) !== '';
+        render('brands_index', [
+            'title' => $hasSearch ? 'Results' : 'Search',
+            'results' => directory_results($_GET),
             'categories' => all_categories(),
             'filters' => [
                 'q' => $_GET['q'] ?? '',
@@ -40,8 +57,9 @@ function route(string $path, string $method): void
     }
 
     if ($path === '/brands') {
+        $hasSearch = trim((string) ($_GET['q'] ?? '')) !== '' || trim((string) ($_GET['category'] ?? '')) !== '';
         render('brands_index', [
-            'title' => 'Brands',
+            'title' => $hasSearch ? 'Results' : 'Brands',
             'results' => directory_results($_GET),
             'categories' => all_categories(),
             'filters' => [
@@ -49,6 +67,22 @@ function route(string $path, string $method): void
                 'category' => $_GET['category'] ?? '',
                 'sort' => $_GET['sort'] ?? 'featured',
             ],
+        ]);
+        return;
+    }
+
+    if ($path === '/stores') {
+        render('stores_index', [
+            'title' => 'Stores',
+            'stores' => list_stores(),
+        ]);
+        return;
+    }
+
+    if ($path === '/items') {
+        render('items_index', [
+            'title' => 'Items',
+            'items' => list_items(),
         ]);
         return;
     }

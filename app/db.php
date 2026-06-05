@@ -48,6 +48,7 @@ function migrate(PDO $pdo): void
 
     $pdo->exec($schema);
     ensure_brand_columns($pdo);
+    ensure_item_columns($pdo);
 }
 
 function ensure_brand_columns(PDO $pdo): void
@@ -59,6 +60,22 @@ function ensure_brand_columns(PDO $pdo): void
         'manufacturing_location' => "ALTER TABLE brands ADD COLUMN manufacturing_location TEXT NOT NULL DEFAULT ''",
         'warranty' => "ALTER TABLE brands ADD COLUMN warranty TEXT NOT NULL DEFAULT ''",
         'notes' => "ALTER TABLE brands ADD COLUMN notes TEXT NOT NULL DEFAULT ''",
+        'popular' => "ALTER TABLE brands ADD COLUMN popular INTEGER NOT NULL DEFAULT 0",
+    ];
+
+    foreach ($needed as $column => $sql) {
+        if (!in_array($column, $existing, true)) {
+            $pdo->exec($sql);
+        }
+    }
+}
+
+function ensure_item_columns(PDO $pdo): void
+{
+    $columns = $pdo->query('PRAGMA table_info(items)')->fetchAll();
+    $existing = array_column($columns, 'name');
+    $needed = [
+        'popular' => "ALTER TABLE items ADD COLUMN popular INTEGER NOT NULL DEFAULT 0",
     ];
 
     foreach ($needed as $column => $sql) {

@@ -15,6 +15,7 @@ $brandLogo = '<img class="brand-logo" src="/assets/gqs-logo-horizontal.png" alt=
     <link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/lipis/flag-icons@7.3.2/css/flag-icons.min.css">
     <link rel="stylesheet" href="/assets/styles.css">
+    <script src="/assets/search.js" defer></script>
 </head>
 <body>
     <header class="site-header">
@@ -25,6 +26,8 @@ $brandLogo = '<img class="brand-logo" src="/assets/gqs-logo-horizontal.png" alt=
         </a>
         <nav class="nav">
             <a href="/brands">Brands</a>
+            <a href="/stores">Stores</a>
+            <a href="/items">Items</a>
             <a href="/news">News</a>
             <?php if (is_admin()): ?>
                 <a href="/admin">Admin</a>
@@ -55,6 +58,8 @@ $brandLogo = '<img class="brand-logo" src="/assets/gqs-logo-horizontal.png" alt=
         </div>
         <nav class="site-footer__links" aria-label="Footer">
             <a href="/brands">Brands</a>
+            <a href="/stores">Stores</a>
+            <a href="/items">Items</a>
             <a href="/news">News</a>
             <?php if (is_admin()): ?><a href="/admin">Admin</a><?php endif; ?>
         </nav>

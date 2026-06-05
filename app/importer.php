@@ -113,6 +113,7 @@ function normalize_csv_row(array $data, string $format): array
         'url' => $url,
         'image_url' => '',
         'featured' => 0,
+        'popular' => 0,
         'company_location' => $data['company location'] ?? '',
         'manufacturing_location' => $data['manufacturing location'] ?? '',
         'warranty' => $data['warranty'] ?? '',
@@ -184,6 +185,7 @@ function upsert_brand_from_csv(array $data): int
         'warranty' => $data['warranty'] ?? '',
         'notes' => $data['notes'] ?? '',
         'featured' => $data['featured'] ?? 0,
+        'popular' => $data['popular'] ?? 0,
     ], $existing ? (int) $existing : null);
 }
 
@@ -207,6 +209,7 @@ function ensure_brand_by_name(string $name): int
         'warranty' => '',
         'notes' => '',
         'featured' => 0,
+        'popular' => 0,
     ]);
 }
 
@@ -225,6 +228,7 @@ function upsert_item_from_csv(array $data, int $brandId): int
         'url' => $data['url'] ?? '',
         'image_url' => $data['image_url'] ?? '',
         'featured' => $data['featured'] ?? 0,
+        'popular' => $data['popular'] ?? 0,
     ], $existing ? (int) $existing : null);
 }
 

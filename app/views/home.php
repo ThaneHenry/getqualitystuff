@@ -1,83 +1,106 @@
 <?php
 /** @var array $featuredBrands */
-/** @var array|null $latestNews */
+/** @var array $featuredStores */
+/** @var array $featuredItems */
 /** @var array $categories */
 /** @var array $filters */
+/** @var array $searchSuggestions */
+$featuredEntries = [];
+foreach ($featuredBrands as $brand) {
+    $featuredEntries[] = [
+        'type' => 'Brand',
+        'href' => '/brands/' . $brand['slug'],
+        'name' => $brand['name'],
+        'description' => $brand['description'] ?: 'Brand details are being reviewed.',
+        'image_url' => $brand['image_url'],
+        'category_name' => $brand['category_name'],
+        'company_location' => $brand['company_location'],
+        'item_count' => (int) $brand['item_count'],
+        'average_score' => $brand['average_score'],
+        'brand_name' => '',
+    ];
+}
+foreach ($featuredStores as $store) {
+    $featuredEntries[] = [
+        'type' => 'Store',
+        'href' => '/brands/' . $store['slug'],
+        'name' => $store['name'],
+        'description' => $store['description'] ?: 'Store details are being reviewed.',
+        'image_url' => $store['image_url'],
+        'category_name' => $store['category_name'],
+        'company_location' => $store['company_location'],
+        'item_count' => (int) $store['item_count'],
+        'average_score' => $store['average_score'],
+        'brand_name' => '',
+    ];
+}
+foreach ($featuredItems as $item) {
+    $featuredEntries[] = [
+        'type' => 'Item',
+        'href' => '/items/' . $item['slug'],
+        'name' => $item['name'],
+        'description' => $item['description'] ?: 'Item details are being reviewed.',
+        'image_url' => $item['image_url'],
+        'category_name' => $item['category_name'],
+        'company_location' => '',
+        'item_count' => 0,
+        'average_score' => $item['average_score'],
+        'brand_name' => $item['brand_name'],
+    ];
+}
 ?>
 <section class="hero-search">
     <div>
-        <h1>Find better brands.</h1>
+        <h1>Find <span class="hero-search__better">better</span> brands.</h1>
     </div>
-    <form class="search-panel" method="get" action="/brands">
+    <form class="search-panel" method="get" action="/search" data-search-form>
         <div class="search-panel__main">
-            <input type="search" name="q" placeholder="Search brands, values, locations, categories" value="<?= e($filters['q'] ?? '') ?>" autofocus>
-            <button type="submit">Search</button>
+            <div class="search-panel__input-wrap">
+                <input type="search" name="q" placeholder="Search brands, stores, values, locations, categories" value="<?= e($filters['q'] ?? '') ?>" autocomplete="off" aria-expanded="false" aria-controls="home-search-dropdown">
+                <button class="search-panel__icon-submit" type="submit" aria-label="Search">
+                    <svg viewBox="0 0 24 24" aria-hidden="true">
+                        <path d="m21 21-4.35-4.35"></path>
+                        <circle cx="11" cy="11" r="7"></circle>
+                    </svg>
+                </button>
+                <div class="search-panel__dropdown" id="home-search-dropdown" role="listbox" hidden></div>
+            </div>
         </div>
-        <div class="search-panel__filters">
-            <select name="category">
-                <option value="">All categories</option>
-                <?php foreach ($categories as $category): ?>
-                    <option value="<?= e($category['slug']) ?>" <?= ($filters['category'] ?? '') === $category['slug'] ? 'selected' : '' ?>>
-                        <?= e($category['name']) ?>
-                    </option>
-                <?php endforeach; ?>
-            </select>
-            <select name="sort">
-                <?php foreach (['featured' => 'Featured first', 'score' => 'Highest score', 'newest' => 'Newest'] as $value => $label): ?>
-                    <option value="<?= e($value) ?>" <?= ($filters['sort'] ?? 'featured') === $value ? 'selected' : '' ?>><?= e($label) ?></option>
-                <?php endforeach; ?>
-            </select>
-        </div>
+        <script type="application/json" data-search-suggestions><?= json_encode($searchSuggestions, JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT) ?></script>
     </form>
 </section>
 
-<?php if ($featuredBrands): ?>
-    <section class="featured-section" aria-labelledby="featured-heading">
-        <div class="section-heading">
-            <h2 id="featured-heading">Featured brands</h2>
-        </div>
-        <div class="featured-card-grid">
-            <?php foreach ($featuredBrands as $brand): ?>
-                <article class="featured-card">
-                    <a class="featured-card__link" href="/brands/<?= e($brand['slug']) ?>">
-                        <div class="featured-panel__image">
-                            <?php if ($brand['image_url']): ?>
-                                <img src="<?= e($brand['image_url']) ?>" alt="">
-                            <?php else: ?>
-                                <span><?= e(substr($brand['name'], 0, 1)) ?></span>
-                            <?php endif; ?>
-                        </div>
-                        <div class="featured-card__body">
-                            <div class="card-meta">
-                                <?php if ($brand['category_name']): ?><span><?= e($brand['category_name']) ?></span><?php endif; ?>
-                                <?php if ($brand['company_location']): ?>
-                                    <?= flag_markup($brand['company_location']) ?>
-                                <?php endif; ?>
-                                <?php if ((int) $brand['item_count'] > 0): ?><span><?= e((int) $brand['item_count']) ?> items</span><?php endif; ?>
-                                <?php if ($brand['average_score'] !== null): ?><span><?= e(score_label((float) $brand['average_score'])) ?> score</span><?php endif; ?>
-                            </div>
-                            <h3><?= e($brand['name']) ?></h3>
-                            <p><?= e($brand['description'] ?: 'Brand details are being reviewed.') ?></p>
-                        </div>
-                    </a>
-                </article>
-            <?php endforeach; ?>
-        </div>
-    </section>
-<?php endif; ?>
-
-<?php if ($latestNews): ?>
-<section class="news-preview" aria-labelledby="news-preview-heading">
+<?php if ($featuredEntries): ?>
+<section class="featured-section" aria-labelledby="featured-heading">
     <div class="section-heading">
-        <h2 id="news-preview-heading">News</h2>
+        <h2 id="featured-heading">Featured</h2>
     </div>
-    <article class="news-card">
-        <div>
-            <time datetime="<?= e($latestNews['published_at']) ?>"><?= e(date('j M Y', strtotime($latestNews['published_at']))) ?></time>
-            <h3><?= e($latestNews['title']) ?></h3>
-            <p><?= e($latestNews['excerpt']) ?></p>
-        </div>
-        <a class="primary-link" href="/news">Read more</a>
-    </article>
+    <div class="featured-card-grid">
+        <?php foreach ($featuredEntries as $entry): ?>
+            <article class="featured-card">
+                <a class="featured-card__link" href="<?= e($entry['href']) ?>">
+                    <div class="featured-panel__image">
+                        <?php if ($entry['image_url']): ?>
+                            <img src="<?= e($entry['image_url']) ?>" alt="">
+                        <?php else: ?>
+                            <span><?= e(substr($entry['name'], 0, 1)) ?></span>
+                        <?php endif; ?>
+                    </div>
+                    <div class="featured-card__body">
+                        <div class="card-meta">
+                            <span class="type-tag"><?= e($entry['type']) ?></span>
+                            <?php if ($entry['category_name']): ?><span><?= e($entry['category_name']) ?></span><?php endif; ?>
+                            <?php if ($entry['brand_name']): ?><span><?= e($entry['brand_name']) ?></span><?php endif; ?>
+                            <?php if ($entry['company_location']): ?><?= flag_markup($entry['company_location']) ?><?php endif; ?>
+                            <?php if ($entry['item_count'] > 0): ?><span><?= e($entry['item_count']) ?> items</span><?php endif; ?>
+                            <?php if ($entry['average_score'] !== null): ?><span><?= e(score_label((float) $entry['average_score'])) ?> score</span><?php endif; ?>
+                        </div>
+                        <h3><?= e($entry['name']) ?></h3>
+                        <p><?= e($entry['description']) ?></p>
+                    </div>
+                </a>
+            </article>
+        <?php endforeach; ?>
+    </div>
 </section>
 <?php endif; ?>

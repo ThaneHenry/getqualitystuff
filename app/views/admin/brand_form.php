@@ -22,6 +22,7 @@ $isEdit = !empty($brand);
     <label>Warranty <input name="warranty" maxlength="160" value="<?= e($brand['warranty'] ?? '') ?>"></label>
     <label>Notes <textarea name="notes" rows="3"><?= e($brand['notes'] ?? '') ?></textarea></label>
     <label class="checkbox-label"><input type="checkbox" name="featured" value="1" <?= !empty($brand['featured']) ? 'checked' : '' ?>> Featured</label>
+    <label class="checkbox-label"><input type="checkbox" name="popular" value="1" <?= !empty($brand['popular']) ? 'checked' : '' ?>> Popular</label>
 
     <?php require __DIR__ . '/score_fields.php'; ?>
 
