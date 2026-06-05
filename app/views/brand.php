@@ -12,7 +12,7 @@
         <?php endif; ?>
     </div>
     <div>
-        <p class="eyebrow"><?= e($brand['category_name'] ?: 'Brand') ?></p>
+        <p class="eyebrow"><?= e(category_label($brand['category_name'] ?: 'Brand')) ?></p>
         <h1><?= e($brand['name']) ?></h1>
         <p><?= e($brand['description']) ?></p>
         <?php if ($brand['url']): ?><a class="primary-link" href="<?= e($brand['url']) ?>" rel="noopener" target="_blank">Visit website</a><?php endif; ?>
@@ -49,7 +49,7 @@
             <article class="listing-card">
                 <a class="listing-card__body" href="/items/<?= e($item['slug']) ?>">
                     <div class="card-meta">
-                        <?php if ($item['category_name']): ?><span><?= e($item['category_name']) ?></span><?php endif; ?>
+                        <?php if ($item['category_name']): ?><span><?= e(category_label($item['category_name'])) ?></span><?php endif; ?>
                         <span><?= e(score_label($item['average_score'] !== null ? (float) $item['average_score'] : null)) ?></span>
                     </div>
                     <h3><?= e($item['name']) ?></h3>

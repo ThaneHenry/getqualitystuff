@@ -432,7 +432,26 @@ button,
     min-width: 0;
 }
 
+.featured-card .card-meta {
+    align-items: center;
+    flex-wrap: nowrap;
+    width: 100%;
+}
+
+.featured-card .card-meta > span:not(.type-tag):not(.flag-chip) {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.featured-card .flag-chip {
+    flex: 0 0 auto;
+    margin-left: auto;
+}
+
 .featured-panel__image {
+    position: relative;
     width: 100%;
     aspect-ratio: 1;
     border-radius: 16px;
@@ -451,9 +470,16 @@ button,
     object-fit: cover;
 }
 
+.featured-panel__image img[src*="favicon" i],
+.featured-panel__image img[src*="logo" i],
+.featured-panel__image img[src$=".svg" i] {
+    object-fit: contain;
+    padding: 22%;
+}
+
 .featured-card h3 {
     margin: 0;
-    font-family: var(--display-font);
+    font-family: var(--body-font);
     font-weight: 700;
     font-size: 1.05rem;
     line-height: 1.2;
@@ -554,6 +580,16 @@ button,
     object-fit: cover;
 }
 
+.listing-card__image img[src*="favicon" i],
+.listing-card__image img[src*="logo" i],
+.listing-card__image img[src$=".svg" i],
+.detail-image img[src*="favicon" i],
+.detail-image img[src*="logo" i],
+.detail-image img[src$=".svg" i] {
+    object-fit: contain;
+    padding: 22%;
+}
+
 .listing-card h2,
 .listing-card h3 {
     margin: 4px 0;
@@ -595,13 +631,28 @@ button,
     font-weight: 750;
 }
 
+.featured-card__type {
+    position: absolute;
+    top: 10px;
+    left: 10px;
+    z-index: 1;
+    border-color: rgba(255, 255, 255, .72);
+    background: rgba(255, 255, 255, .9);
+    box-shadow: 0 4px 14px rgba(0, 0, 0, .12);
+    backdrop-filter: blur(8px);
+    font-size: .78rem;
+    line-height: 1.25;
+    padding: 2px 8px;
+}
+
 .flag-chip {
     display: inline-block;
     border-radius: 2px;
-    box-shadow: 0 0 0 1px rgba(0, 0, 0, .08);
     font-size: 1.05em;
+    height: 1em;
     line-height: 1;
     transform: translateY(1px);
+    width: 1.333em;
 }
 
 .score-pill,
@@ -722,6 +773,18 @@ button,
     display: flex;
     gap: 10px;
     flex-wrap: wrap;
+}
+
+.field-action {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+    margin-top: -6px;
+}
+
+.field-action button {
+    padding: 9px 14px;
 }
 
 .admin-columns {

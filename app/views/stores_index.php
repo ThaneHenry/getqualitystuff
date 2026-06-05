@@ -25,7 +25,7 @@
                     </div>
                     <div class="listing-card__body">
                         <div class="card-meta">
-                            <?php if ($store['category_name']): ?><span><?= e($store['category_name']) ?></span><?php endif; ?>
+                            <?php if ($store['category_name']): ?><span><?= e(category_label($store['category_name'])) ?></span><?php endif; ?>
                             <?php if ($store['company_location']): ?><?= flag_markup($store['company_location']) ?><?php endif; ?>
                             <?php if ((int) $store['item_count'] > 0): ?>
                                 <span><?= e((int) $store['item_count']) ?> <?= (int) $store['item_count'] === 1 ? 'item' : 'items' ?></span>

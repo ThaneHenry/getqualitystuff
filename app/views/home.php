@@ -80,6 +80,7 @@ foreach ($featuredItems as $item) {
             <article class="featured-card">
                 <a class="featured-card__link" href="<?= e($entry['href']) ?>">
                     <div class="featured-panel__image">
+                        <span class="type-tag featured-card__type"><?= e($entry['type']) ?></span>
                         <?php if ($entry['image_url']): ?>
                             <img src="<?= e($entry['image_url']) ?>" alt="">
                         <?php else: ?>
@@ -88,8 +89,7 @@ foreach ($featuredItems as $item) {
                     </div>
                     <div class="featured-card__body">
                         <div class="card-meta">
-                            <span class="type-tag"><?= e($entry['type']) ?></span>
-                            <?php if ($entry['category_name']): ?><span><?= e($entry['category_name']) ?></span><?php endif; ?>
+                            <?php if ($entry['category_name']): ?><span><?= e(category_label($entry['category_name'])) ?></span><?php endif; ?>
                             <?php if ($entry['brand_name']): ?><span><?= e($entry['brand_name']) ?></span><?php endif; ?>
                             <?php if ($entry['company_location']): ?><?= flag_markup($entry['company_location']) ?><?php endif; ?>
                             <?php if ($entry['item_count'] > 0): ?><span><?= e($entry['item_count']) ?> items</span><?php endif; ?>

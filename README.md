@@ -15,11 +15,9 @@ brew install php
 
 ## Run Locally
 
-Set the admin login before first run:
+Start the local PHP server:
 
 ```sh
-export GET_QUALITY_STUFF_ADMIN_EMAIL="admin@example.com"
-export GET_QUALITY_STUFF_ADMIN_PASSWORD="choose-a-real-password"
 scripts/serve-local.sh
 ```
 
@@ -27,6 +25,13 @@ Then open:
 
 ```text
 http://127.0.0.1:8000
+```
+
+The local server seeds a dev-only admin login if it does not already exist:
+
+```text
+email: local-admin@getqualitystuff.test
+password: local-admin-password
 ```
 
 To use another host or port:
@@ -80,18 +85,11 @@ The optional number limits how many brands are checked in one run. Existing cust
 
 ## Admin
 
-The first configured admin account is seeded automatically when the app starts. Change the default password before using anything beyond local testing.
-
-Defaults:
-
-```text
-email: admin@example.com
-password: change-me-now
-```
+The first configured admin account is seeded automatically when the app starts, but only when both `GET_QUALITY_STUFF_ADMIN_EMAIL` and `GET_QUALITY_STUFF_ADMIN_PASSWORD` are set. The local start script sets dev-only credentials for testing.
 
 ## DreamHost Notes
 
 - Upload the project files.
 - Ensure the web root points to `public`.
 - Ensure `storage` is writable by PHP.
-- Set `GET_QUALITY_STUFF_ADMIN_EMAIL` and `GET_QUALITY_STUFF_ADMIN_PASSWORD` in the hosting environment before first run, or edit `app/config.php` for a simple shared-hosting setup.
+- Set `GET_QUALITY_STUFF_ADMIN_EMAIL` and `GET_QUALITY_STUFF_ADMIN_PASSWORD` in the hosting environment before first run.

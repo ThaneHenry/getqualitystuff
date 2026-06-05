@@ -61,6 +61,23 @@ function score_label(?float $score): string
     return $score === null ? 'No score' : number_format($score, 1);
 }
 
+function category_label(?string $value): string
+{
+    $value = trim((string) $value);
+    if ($value === '') {
+        return '';
+    }
+
+    return preg_replace_callback('/[A-Za-z][A-Za-z0-9]*/', static function (array $matches): string {
+        $word = $matches[0];
+        if (strlen($word) <= 4 && strtoupper($word) === $word) {
+            return $word;
+        }
+
+        return ucfirst(strtolower($word));
+    }, $value) ?: $value;
+}
+
 function bool_from_input(mixed $value): int
 {
     if (is_string($value)) {
@@ -85,6 +102,29 @@ function discover_og_metadata(?string $url): array
         return ['description' => '', 'image' => ''];
     }
 
+    $html = fetch_remote_html($url);
+    if ($html === '') {
+        return ['description' => '', 'image' => ''];
+    }
+
+    $image = extract_meta_content($html, 'property', 'og:image')
+        ?: extract_meta_content($html, 'property', 'og:image:secure_url')
+        ?: extract_meta_content($html, 'name', 'twitter:image')
+        ?: extract_meta_content($html, 'itemprop', 'image')
+        ?: extract_link_href($html, ['apple-touch-icon', 'apple-touch-icon-precomposed', 'icon', 'shortcut icon']);
+
+    $description = extract_meta_content($html, 'property', 'og:description')
+        ?: extract_meta_content($html, 'name', 'twitter:description')
+        ?: extract_meta_content($html, 'name', 'description');
+
+    return [
+        'description' => normalize_meta_text($description),
+        'image' => $image === '' ? '' : absolutize_url(html_entity_decode($image, ENT_QUOTES, 'UTF-8'), $url),
+    ];
+}
+
+function fetch_remote_html(string $url): string
+{
     $sslOptions = [
         'verify_peer' => true,
         'verify_peer_name' => true,
@@ -109,22 +149,30 @@ function discover_og_metadata(?string $url): array
     ]);
 
     $html = @file_get_contents($url, false, $context, 0, 512000);
-    if (!is_string($html) || $html === '') {
-        return ['description' => '', 'image' => ''];
+    if (is_string($html) && $html !== '') {
+        return $html;
     }
 
-    $image = extract_meta_content($html, 'property', 'og:image')
-        ?: extract_meta_content($html, 'property', 'og:image:secure_url')
-        ?: extract_meta_content($html, 'name', 'twitter:image');
+    if (!function_exists('curl_init')) {
+        return '';
+    }
 
-    $description = extract_meta_content($html, 'property', 'og:description')
-        ?: extract_meta_content($html, 'name', 'twitter:description')
-        ?: extract_meta_content($html, 'name', 'description');
+    $curl = curl_init($url);
+    if ($curl === false) {
+        return '';
+    }
 
-    return [
-        'description' => normalize_meta_text($description),
-        'image' => $image === '' ? '' : absolutize_url(html_entity_decode($image, ENT_QUOTES, 'UTF-8'), $url),
-    ];
+    curl_setopt_array($curl, [
+        CURLOPT_RETURNTRANSFER => true,
+        CURLOPT_FOLLOWLOCATION => true,
+        CURLOPT_MAXREDIRS => 3,
+        CURLOPT_TIMEOUT => 5,
+        CURLOPT_USERAGENT => 'Mozilla/5.0 (compatible; GetQualityStuff/1.0; +https://getqualitystuff.com)',
+        CURLOPT_HTTPHEADER => ['Accept: text/html,application/xhtml+xml'],
+    ]);
+    $html = curl_exec($curl);
+
+    return is_string($html) ? substr($html, 0, 512000) : '';
 }
 
 function discover_og_image(?string $url): string
@@ -142,6 +190,28 @@ function extract_meta_content(string $html, string $attribute, string $value): s
     $pattern = '/<meta\b(?=[^>]*\b' . preg_quote($attribute, '/') . '\s*=\s*["\']' . preg_quote($value, '/') . '["\'])(?=[^>]*\bcontent\s*=\s*(["\'])(.*?)\1)[^>]*>/i';
     if (preg_match($pattern, $html, $matches)) {
         return trim($matches[2]);
+    }
+
+    return '';
+}
+
+function extract_link_href(string $html, array $rels): string
+{
+    if (!preg_match_all('/<link\b[^>]*>/i', $html, $matches)) {
+        return '';
+    }
+
+    foreach ($matches[0] as $tag) {
+        if (!preg_match('/\brel\s*=\s*(["\'])(.*?)\1/i', $tag, $relMatch)) {
+            continue;
+        }
+
+        $tagRels = preg_split('/\s+/', strtolower(trim($relMatch[2]))) ?: [];
+        foreach ($rels as $rel) {
+            if (in_array(strtolower($rel), $tagRels, true) && preg_match('/\bhref\s*=\s*(["\'])(.*?)\1/i', $tag, $hrefMatch)) {
+                return trim($hrefMatch[2]);
+            }
+        }
     }
 
     return '';

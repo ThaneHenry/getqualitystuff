@@ -191,6 +191,11 @@ function route_admin(string $path, string $method): void
         return;
     }
 
+    if (preg_match('#^/admin/brands/(\d+)/get-logo$#', $path, $matches) && $method === 'POST') {
+        handle_brand_logo((int) $matches[1]);
+        return;
+    }
+
     if (preg_match('#^/admin/brands/(\d+)/delete$#', $path, $matches) && $method === 'POST') {
         verify_csrf();
         $itemIds = db()->prepare('SELECT id FROM items WHERE brand_id = :id');
@@ -214,6 +219,11 @@ function route_admin(string $path, string $method): void
 
     if (preg_match('#^/admin/items/(\d+)/edit$#', $path, $matches)) {
         handle_item_form($method, (int) $matches[1]);
+        return;
+    }
+
+    if (preg_match('#^/admin/items/(\d+)/get-logo$#', $path, $matches) && $method === 'POST') {
+        handle_item_logo((int) $matches[1]);
         return;
     }
 
@@ -260,6 +270,26 @@ function handle_brand_form(string $method, ?int $id): void
     ]);
 }
 
+function handle_brand_logo(int $id): void
+{
+    verify_csrf();
+    $brand = find_brand_by_id($id);
+    if (!$brand) {
+        not_found();
+    }
+
+    $imageUrl = discover_og_image($brand['url'] ?? '');
+    if ($imageUrl === '') {
+        flash('No logo image found for that saved URL.');
+        redirect('/admin/brands/' . $id . '/edit');
+    }
+
+    $stmt = db()->prepare('UPDATE brands SET image_url = :image_url, updated_at = CURRENT_TIMESTAMP WHERE id = :id');
+    $stmt->execute(['image_url' => $imageUrl, 'id' => $id]);
+    flash('Logo image updated.');
+    redirect('/admin/brands/' . $id . '/edit');
+}
+
 function handle_item_form(string $method, ?int $id): void
 {
     $item = $id === null ? null : find_item_by_id($id);
@@ -289,6 +319,26 @@ function handle_item_form(string $method, ?int $id): void
         'categoryName' => $categoryName,
         'scores' => $id === null ? blank_scores() : entity_scores('item', $id),
     ]);
+}
+
+function handle_item_logo(int $id): void
+{
+    verify_csrf();
+    $item = find_item_by_id($id);
+    if (!$item) {
+        not_found();
+    }
+
+    $imageUrl = discover_og_image($item['url'] ?? '');
+    if ($imageUrl === '') {
+        flash('No logo image found for that saved URL.');
+        redirect('/admin/items/' . $id . '/edit');
+    }
+
+    $stmt = db()->prepare('UPDATE items SET image_url = :image_url, updated_at = CURRENT_TIMESTAMP WHERE id = :id');
+    $stmt->execute(['image_url' => $imageUrl, 'id' => $id]);
+    flash('Logo image updated.');
+    redirect('/admin/items/' . $id . '/edit');
 }
 
 function blank_scores(): array

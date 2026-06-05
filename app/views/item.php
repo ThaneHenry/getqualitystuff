@@ -11,7 +11,7 @@
         <?php endif; ?>
     </div>
     <div>
-        <p class="eyebrow"><?= e($item['category_name'] ?: 'Item') ?></p>
+        <p class="eyebrow"><?= e(category_label($item['category_name'] ?: 'Item')) ?></p>
         <h1><?= e($item['name']) ?></h1>
         <p class="byline">by <a href="/brands/<?= e($item['brand_slug']) ?>"><?= e($item['brand_name']) ?></a></p>
         <p><?= e($item['description']) ?></p>

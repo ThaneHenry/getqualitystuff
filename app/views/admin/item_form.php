@@ -27,6 +27,12 @@ $isEdit = !empty($item);
     <label>Description <textarea name="description" rows="5"><?= e($item['description'] ?? '') ?></textarea></label>
     <label>Item URL <input type="url" name="url" value="<?= e($item['url'] ?? '') ?>"></label>
     <label>Image URL <input type="url" name="image_url" value="<?= e($item['image_url'] ?? '') ?>"></label>
+    <?php if ($isEdit && !empty($item['url'])): ?>
+        <div class="field-action">
+            <button type="submit" formaction="/admin/items/<?= e((string) $item['id']) ?>/get-logo" formmethod="post" formnovalidate>Get logo</button>
+            <span class="muted">Uses the saved item URL.</span>
+        </div>
+    <?php endif; ?>
     <label class="checkbox-label"><input type="checkbox" name="featured" value="1" <?= !empty($item['featured']) ? 'checked' : '' ?>> Featured</label>
     <label class="checkbox-label"><input type="checkbox" name="popular" value="1" <?= !empty($item['popular']) ? 'checked' : '' ?>> Popular</label>
 

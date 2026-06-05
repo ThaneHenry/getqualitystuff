@@ -52,7 +52,7 @@ $resultCountLabel = $hasSearch
                 </div>
                 <div class="listing-card__body">
                     <div class="card-meta">
-                        <?php if ($result['category_name']): ?><span><?= e($result['category_name']) ?></span><?php endif; ?>
+                        <?php if ($result['category_name']): ?><span><?= e(category_label($result['category_name'])) ?></span><?php endif; ?>
                         <?php if ($result['company_location']): ?><?= flag_markup($result['company_location']) ?><?php endif; ?>
                         <?php if ((int) $result['item_count'] > 0): ?>
                             <span><?= e((int) $result['item_count']) ?> <?= (int) $result['item_count'] === 1 ? 'item' : 'items' ?></span>

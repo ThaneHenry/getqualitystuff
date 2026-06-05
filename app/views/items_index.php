@@ -25,7 +25,7 @@
                     </div>
                     <div class="listing-card__body">
                         <div class="card-meta">
-                            <?php if ($item['category_name']): ?><span><?= e($item['category_name']) ?></span><?php endif; ?>
+                            <?php if ($item['category_name']): ?><span><?= e(category_label($item['category_name'])) ?></span><?php endif; ?>
                             <span><?= e($item['brand_name']) ?></span>
                             <?php if ($item['average_score'] !== null): ?><span><?= e(score_label((float) $item['average_score'])) ?> score</span><?php endif; ?>
                         </div>

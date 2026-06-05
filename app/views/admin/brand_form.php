@@ -17,6 +17,12 @@ $isEdit = !empty($brand);
     <label>Description <textarea name="description" rows="5"><?= e($brand['description'] ?? '') ?></textarea></label>
     <label>Website URL <input type="url" name="url" value="<?= e($brand['url'] ?? '') ?>"></label>
     <label>Image URL <input type="url" name="image_url" value="<?= e($brand['image_url'] ?? '') ?>"></label>
+    <?php if ($isEdit && !empty($brand['url'])): ?>
+        <div class="field-action">
+            <button type="submit" formaction="/admin/brands/<?= e((string) $brand['id']) ?>/get-logo" formmethod="post" formnovalidate>Get logo</button>
+            <span class="muted">Uses the saved website URL.</span>
+        </div>
+    <?php endif; ?>
     <label>Company location <input name="company_location" maxlength="80" value="<?= e($brand['company_location'] ?? '') ?>"></label>
     <label>Manufacturing location <input name="manufacturing_location" maxlength="80" value="<?= e($brand['manufacturing_location'] ?? '') ?>"></label>
     <label>Warranty <input name="warranty" maxlength="160" value="<?= e($brand['warranty'] ?? '') ?>"></label>

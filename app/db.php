@@ -115,6 +115,10 @@ function seed_defaults(PDO $pdo): void
     ]);
 
     $config = config();
+    if ($config['admin_email'] === '' || $config['admin_password'] === '') {
+        return;
+    }
+
     $existing = $pdo->prepare('SELECT id FROM users WHERE email = :email LIMIT 1');
     $existing->execute(['email' => $config['admin_email']]);
 
