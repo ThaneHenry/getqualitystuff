@@ -3,5 +3,6 @@
 /data/initial.csv
 /public/uploads/*
 !/public/uploads/.gitkeep
+/backups/
 /.env
 .DS_Store
