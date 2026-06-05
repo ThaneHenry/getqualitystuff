@@ -20,19 +20,19 @@ Set the admin login before first run:
 ```sh
 export GET_QUALITY_STUFF_ADMIN_EMAIL="admin@example.com"
 export GET_QUALITY_STUFF_ADMIN_PASSWORD="choose-a-real-password"
-php -S localhost:8000 -t public
-```
-
-If pretty URLs such as `/brands/example` do not resolve in your PHP version, use the router file:
-
-```sh
-php -S localhost:8000 -t public public/router.php
+scripts/serve-local.sh
 ```
 
 Then open:
 
 ```text
-http://localhost:8000
+http://127.0.0.1:8000
+```
+
+To use another host or port:
+
+```sh
+HOST=localhost PORT=8080 scripts/serve-local.sh
 ```
 
 The database is created automatically at `storage/getqualitystuff.sqlite`.
