@@ -4,10 +4,8 @@ set -euo pipefail
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 PRODUCTION_URL="${PRODUCTION_URL:-https://getqualitystuff.com/}"
 MODE="${1:-}"
-REMOTE_USER="ikinone"
-REMOTE_HOST="iad1-shared-e1-28.dreamhost.com"
-REMOTE_PORT="22"
-SSH_CONTROL_PATH="/tmp/getqualitystuff-deploy-$$.sock"
+REMOTE_CONNECTION_DELAY="${REMOTE_CONNECTION_DELAY:-15}"
+REMOTE_RETRY_DELAY="${REMOTE_RETRY_DELAY:-30}"
 
 if [[ "$MODE" != "" && "$MODE" != "--check-only" ]]; then
     echo "Usage: scripts/deploy-production.sh [--check-only]"
@@ -46,23 +44,34 @@ if [[ "$MODE" == "--check-only" ]]; then
     exit 0
 fi
 
-export DREAMHOST_SSH_COMMAND="ssh -p ${REMOTE_PORT} -o PreferredAuthentications=password -o PubkeyAuthentication=no -o ControlMaster=auto -o ControlPersist=yes -o ControlPath=${SSH_CONTROL_PATH}"
+run_remote_step() {
+    local description="$1"
+    shift
 
-close_ssh_connection() {
-    if [[ -S "$SSH_CONTROL_PATH" ]]; then
-        ssh -p "$REMOTE_PORT" -S "$SSH_CONTROL_PATH" -O exit \
-            "${REMOTE_USER}@${REMOTE_HOST}" >/dev/null 2>&1 || true
+    if "$@"; then
+        return 0
     fi
+
+    echo
+    echo "${description} failed. Retrying in ${REMOTE_RETRY_DELAY} seconds..." >&2
+    sleep "$REMOTE_RETRY_DELAY"
+    "$@"
 }
-trap close_ssh_connection EXIT
+
+pause_between_remote_steps() {
+    echo "Waiting ${REMOTE_CONNECTION_DELAY} seconds before the next DreamHost connection..."
+    sleep "$REMOTE_CONNECTION_DELAY"
+}
 
 echo
 echo "Backing up the primary production database..."
-"${ROOT_DIR}/scripts/backup-dreamhost-db.sh"
+run_remote_step "Database backup" "${ROOT_DIR}/scripts/backup-dreamhost-db.sh"
 
 echo
+pause_between_remote_steps
+echo
 echo "Previewing the production code deployment..."
-"${ROOT_DIR}/scripts/deploy-dreamhost.sh" --dry-run
+run_remote_step "Deployment preview" "${ROOT_DIR}/scripts/deploy-dreamhost.sh" --dry-run
 
 echo
 echo "This will deploy commit ${COMMIT} to ${PRODUCTION_URL}."
@@ -75,8 +84,10 @@ if [[ "$CONFIRMATION" != "DEPLOY" ]]; then
 fi
 
 echo
+pause_between_remote_steps
+echo
 echo "Deploying code to production..."
-"${ROOT_DIR}/scripts/deploy-dreamhost.sh" --live
+run_remote_step "Production deployment" "${ROOT_DIR}/scripts/deploy-dreamhost.sh" --live
 
 echo
 echo "Verifying production..."
