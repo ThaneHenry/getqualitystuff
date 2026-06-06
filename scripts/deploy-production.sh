@@ -4,8 +4,11 @@ set -euo pipefail
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 PRODUCTION_URL="${PRODUCTION_URL:-https://getqualitystuff.com/}"
 MODE="${1:-}"
-REMOTE_CONNECTION_DELAY="${REMOTE_CONNECTION_DELAY:-15}"
 REMOTE_RETRY_DELAY="${REMOTE_RETRY_DELAY:-30}"
+REMOTE_USER="ikinone"
+REMOTE_HOST="iad1-shared-e1-28.dreamhost.com"
+REMOTE_PORT="22"
+SSH_CONTROL_PATH="${TMPDIR:-/tmp}/getqualitystuff-deploy-$$.sock"
 
 if [[ "$MODE" != "" && "$MODE" != "--check-only" ]]; then
     echo "Usage: scripts/deploy-production.sh [--check-only]"
@@ -55,20 +58,67 @@ run_remote_step() {
     echo
     echo "${description} failed. Retrying in ${REMOTE_RETRY_DELAY} seconds..." >&2
     sleep "$REMOTE_RETRY_DELAY"
+
+    if ! check_ssh_connection; then
+        echo "The shared DreamHost SSH connection closed. Deployment stopped before retrying." >&2
+        echo "Wait a few minutes, confirm SSH access, then run the deployment again." >&2
+        return 1
+    fi
+
     "$@"
 }
 
-pause_between_remote_steps() {
-    echo "Waiting ${REMOTE_CONNECTION_DELAY} seconds before the next DreamHost connection..."
-    sleep "$REMOTE_CONNECTION_DELAY"
+check_ssh_connection() {
+    ssh -p "$REMOTE_PORT" -S "$SSH_CONTROL_PATH" -O check \
+        "${REMOTE_USER}@${REMOTE_HOST}" >/dev/null 2>&1
 }
+
+close_ssh_connection() {
+    if [[ -S "$SSH_CONTROL_PATH" ]]; then
+        ssh -p "$REMOTE_PORT" -S "$SSH_CONTROL_PATH" -O exit \
+            "${REMOTE_USER}@${REMOTE_HOST}" >/dev/null 2>&1 || true
+    fi
+    rm -f "$SSH_CONTROL_PATH"
+}
+
+trap close_ssh_connection EXIT
+
+echo
+echo "Opening one shared DreamHost SSH connection for this deployment..."
+echo "You should only be prompted for the DreamHost password once."
+rm -f "$SSH_CONTROL_PATH"
+if ! ssh \
+    -p "$REMOTE_PORT" \
+    -o PreferredAuthentications=password \
+    -o PubkeyAuthentication=no \
+    -o NumberOfPasswordPrompts=1 \
+    -o ConnectionAttempts=1 \
+    -o ControlMaster=yes \
+    -o ControlPersist=600 \
+    -o ControlPath="$SSH_CONTROL_PATH" \
+    -o ConnectTimeout=20 \
+    -o ServerAliveInterval=30 \
+    -o ServerAliveCountMax=3 \
+    -fN \
+    "${REMOTE_USER}@${REMOTE_HOST}"; then
+    echo "DreamHost closed or rejected the initial SSH connection." >&2
+    echo "Wait a few minutes before retrying. If it continues, test direct SSH access:" >&2
+    echo "  ssh -p ${REMOTE_PORT} ${REMOTE_USER}@${REMOTE_HOST}" >&2
+    exit 1
+fi
+
+if ! check_ssh_connection; then
+    echo "Unable to establish a reusable DreamHost SSH connection." >&2
+    echo "Confirm the password and DreamHost SSH availability, then try again." >&2
+    exit 1
+fi
+
+export DREAMHOST_SSH_COMMAND="ssh -p ${REMOTE_PORT} -S ${SSH_CONTROL_PATH} -o ControlMaster=no -o BatchMode=yes"
 
 echo
 echo "Backing up the primary production database..."
 run_remote_step "Database backup" "${ROOT_DIR}/scripts/backup-dreamhost-db.sh"
 
-echo
-pause_between_remote_steps
 echo
 echo "Previewing the production code deployment..."
 run_remote_step "Deployment preview" "${ROOT_DIR}/scripts/deploy-dreamhost.sh" --dry-run
@@ -83,8 +133,6 @@ if [[ "$CONFIRMATION" != "DEPLOY" ]]; then
     exit 1
 fi
 
-echo
-pause_between_remote_steps
 echo
 echo "Deploying code to production..."
 run_remote_step "Production deployment" "${ROOT_DIR}/scripts/deploy-dreamhost.sh" --live

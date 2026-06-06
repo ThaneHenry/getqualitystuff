@@ -69,7 +69,8 @@ This refuses to deploy uncommitted changes, checks all tracked PHP files, backs
 up the primary production database, previews the DreamHost sync, requires a
 typed `DEPLOY` confirmation, deploys code while preserving the production
 database and uploads, and verifies that the production site returns a successful
-HTTP response.
+HTTP response. It opens one shared SSH connection for the full workflow, so the
+DreamHost password should only be requested once.
 
 To run only the local pre-deployment checks:
 
