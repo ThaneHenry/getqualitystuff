@@ -4,6 +4,10 @@ set -euo pipefail
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 PRODUCTION_URL="${PRODUCTION_URL:-https://getqualitystuff.com/}"
 MODE="${1:-}"
+REMOTE_USER="ikinone"
+REMOTE_HOST="iad1-shared-e1-28.dreamhost.com"
+REMOTE_PORT="22"
+SSH_CONTROL_PATH="/tmp/getqualitystuff-deploy-$$.sock"
 
 if [[ "$MODE" != "" && "$MODE" != "--check-only" ]]; then
     echo "Usage: scripts/deploy-production.sh [--check-only]"
@@ -41,6 +45,16 @@ echo "Local checks passed for ${BRANCH:-detached HEAD} at ${COMMIT}."
 if [[ "$MODE" == "--check-only" ]]; then
     exit 0
 fi
+
+export DREAMHOST_SSH_COMMAND="ssh -p ${REMOTE_PORT} -o PreferredAuthentications=password -o PubkeyAuthentication=no -o ControlMaster=auto -o ControlPersist=yes -o ControlPath=${SSH_CONTROL_PATH}"
+
+close_ssh_connection() {
+    if [[ -S "$SSH_CONTROL_PATH" ]]; then
+        ssh -p "$REMOTE_PORT" -S "$SSH_CONTROL_PATH" -O exit \
+            "${REMOTE_USER}@${REMOTE_HOST}" >/dev/null 2>&1 || true
+    fi
+}
+trap close_ssh_connection EXIT
 
 echo
 echo "Backing up the primary production database..."

@@ -5,6 +5,7 @@ REMOTE_USER="ikinone"
 REMOTE_HOST="iad1-shared-e1-28.dreamhost.com"
 REMOTE_PORT="22"
 REMOTE_PATH="/home/ikinone/getqualitystuff.com/"
+SSH_COMMAND="${DREAMHOST_SSH_COMMAND:-ssh -p ${REMOTE_PORT} -o PreferredAuthentications=password -o PubkeyAuthentication=no}"
 
 DRY_RUN_FLAG="${1:---dry-run}"
 
@@ -20,7 +21,7 @@ if [[ "$DRY_RUN_FLAG" == "--dry-run" ]]; then
 fi
 
 rsync "${RSYNC_FLAGS[@]}" \
-  -e "ssh -p ${REMOTE_PORT} -o PreferredAuthentications=password -o PubkeyAuthentication=no" \
+  -e "$SSH_COMMAND" \
   --exclude='.git/' \
   --exclude='.gitignore' \
   --exclude='.DS_Store' \
