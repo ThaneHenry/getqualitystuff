@@ -33,6 +33,16 @@ function is_admin(): bool
     return $user !== null && $user['role'] === 'admin';
 }
 
+function require_user(): array
+{
+    $user = current_user();
+    if ($user === null) {
+        redirect('/login');
+    }
+
+    return $user;
+}
+
 function require_admin(): void
 {
     if (!is_admin()) {
@@ -40,11 +50,34 @@ function require_admin(): void
     }
 }
 
-function login(string $email, string $password): bool
+function find_user_by_email(string $email): ?array
 {
-    $stmt = db()->prepare('SELECT * FROM users WHERE email = :email LIMIT 1');
+    $stmt = db()->prepare('SELECT * FROM users WHERE lower(email) = lower(:email) LIMIT 1');
     $stmt->execute(['email' => trim($email)]);
     $user = $stmt->fetch();
+
+    return $user ?: null;
+}
+
+function create_user(string $email, string $password, string $role = 'member'): int
+{
+    $email = trim($email);
+
+    $stmt = db()->prepare(
+        'INSERT INTO users (email, password_hash, role) VALUES (:email, :password_hash, :role)'
+    );
+    $stmt->execute([
+        'email' => $email,
+        'password_hash' => password_hash($password, PASSWORD_DEFAULT),
+        'role' => $role,
+    ]);
+
+    return (int) db()->lastInsertId();
+}
+
+function login(string $email, string $password): bool
+{
+    $user = find_user_by_email($email);
 
     if (!$user || !password_verify($password, $user['password_hash'])) {
         return false;
@@ -53,6 +86,12 @@ function login(string $email, string $password): bool
     session_regenerate_id(true);
     $_SESSION['user_id'] = (int) $user['id'];
     return true;
+}
+
+function login_user_id(int $userId): void
+{
+    session_regenerate_id(true);
+    $_SESSION['user_id'] = $userId;
 }
 
 function logout(): void

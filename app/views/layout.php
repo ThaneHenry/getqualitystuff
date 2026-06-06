@@ -3,6 +3,7 @@
 /** @var string $appName */
 $appDomain = config()['app_domain'] ?? 'getqualitystuff.com';
 $brandLogo = '<img class="brand-logo" src="/assets/gqs-logo-horizontal.png" alt="' . e($appName) . '" width="1013" height="320">';
+$signedInUser = current_user();
 ?>
 <!doctype html>
 <html lang="en">
@@ -31,10 +32,15 @@ $brandLogo = '<img class="brand-logo" src="/assets/gqs-logo-horizontal.png" alt=
             <a href="/news">News</a>
             <?php if (is_admin()): ?>
                 <a href="/admin">Admin</a>
-                <form action="/admin/logout" method="post" class="inline-form">
+            <?php endif; ?>
+            <?php if ($signedInUser): ?>
+                <a href="/account">Account</a>
+                <form action="/logout" method="post" class="inline-form">
                     <input type="hidden" name="csrf_token" value="<?= e(csrf_token()) ?>">
                     <button type="submit" class="link-button">Log out</button>
                 </form>
+            <?php else: ?>
+                <a href="/login">Log in</a>
             <?php endif; ?>
         </nav>
     </header>
@@ -62,6 +68,7 @@ $brandLogo = '<img class="brand-logo" src="/assets/gqs-logo-horizontal.png" alt=
             <a href="/items">Items</a>
             <a href="/news">News</a>
             <?php if (is_admin()): ?><a href="/admin">Admin</a><?php endif; ?>
+            <?php if ($signedInUser): ?><a href="/account">Account</a><?php else: ?><a href="/login">Log in</a><?php endif; ?>
         </nav>
         <p class="site-footer__fineprint">&copy; <?= e(date('Y')) ?> <?= e($appName) ?>. <?= e($appDomain) ?>.</p>
     </footer>

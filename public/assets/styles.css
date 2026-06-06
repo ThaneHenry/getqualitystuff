@@ -816,6 +816,43 @@ button,
     margin: 48px auto;
 }
 
+.auth-panel__footer {
+    margin: 16px 0 0;
+    color: var(--muted);
+}
+
+.auth-panel__footer a {
+    color: var(--accent-dark);
+    font-weight: 700;
+}
+
+.account-summary {
+    max-width: 620px;
+}
+
+.account-summary dl {
+    display: grid;
+    gap: 12px;
+    margin: 0 0 18px;
+}
+
+.account-summary dl div {
+    display: grid;
+    grid-template-columns: 120px minmax(0, 1fr);
+    gap: 12px;
+    border-top: 1px solid var(--line);
+    padding-top: 12px;
+}
+
+.account-summary dt {
+    color: var(--muted);
+    font-weight: 700;
+}
+
+.account-summary dd {
+    margin: 0;
+}
+
 .checkbox-label {
     display: inline-flex;
     align-items: center;
@@ -853,6 +890,14 @@ button,
 .error {
     padding: 10px 12px;
     border-radius: 8px;
+}
+
+.error p {
+    margin: 0;
+}
+
+.error p + p {
+    margin-top: 6px;
 }
 
 code {

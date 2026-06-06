@@ -95,6 +95,48 @@ function route(string $path, string $method): void
         return;
     }
 
+    if ($path === '/register') {
+        if ($method === 'POST') {
+            handle_register();
+            return;
+        }
+
+        render('auth/register', ['title' => 'Create account']);
+        return;
+    }
+
+    if ($path === '/login') {
+        if ($method === 'POST') {
+            verify_csrf();
+            if (login($_POST['email'] ?? '', $_POST['password'] ?? '')) {
+                redirect('/account');
+            }
+            render('auth/login', [
+                'title' => 'Log in',
+                'error' => 'Those login details did not match.',
+                'email' => $_POST['email'] ?? '',
+            ]);
+            return;
+        }
+
+        render('auth/login', ['title' => 'Log in']);
+        return;
+    }
+
+    if ($path === '/logout' && $method === 'POST') {
+        verify_csrf();
+        logout();
+        redirect('/');
+    }
+
+    if ($path === '/account') {
+        render('auth/account', [
+            'title' => 'Account',
+            'user' => require_user(),
+        ]);
+        return;
+    }
+
     if (preg_match('#^/brands/([a-z0-9-]+)$#', $path, $matches)) {
         $brand = find_brand_by_slug($matches[1]);
         if (!$brand) {
@@ -149,6 +191,46 @@ function route(string $path, string $method): void
     }
 
     not_found();
+}
+
+function handle_register(): void
+{
+    verify_csrf();
+
+    $email = trim((string) ($_POST['email'] ?? ''));
+    $password = (string) ($_POST['password'] ?? '');
+    $passwordConfirmation = (string) ($_POST['password_confirmation'] ?? '');
+    $errors = [];
+
+    if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+        $errors[] = 'Enter a valid email address.';
+    }
+
+    if (strlen($password) < 8) {
+        $errors[] = 'Use at least 8 characters for your password.';
+    }
+
+    if ($password !== $passwordConfirmation) {
+        $errors[] = 'The passwords did not match.';
+    }
+
+    if ($email !== '' && find_user_by_email($email) !== null) {
+        $errors[] = 'An account already exists for that email.';
+    }
+
+    if ($errors) {
+        render('auth/register', [
+            'title' => 'Create account',
+            'errors' => $errors,
+            'email' => $email,
+        ]);
+        return;
+    }
+
+    $userId = create_user($email, $password);
+    login_user_id($userId);
+    flash('Your account is ready.');
+    redirect('/account');
 }
 
 function route_admin(string $path, string $method): void

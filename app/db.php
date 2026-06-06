@@ -47,8 +47,24 @@ function migrate(PDO $pdo): void
     }
 
     $pdo->exec($schema);
+    ensure_user_columns($pdo);
     ensure_brand_columns($pdo);
     ensure_item_columns($pdo);
+}
+
+function ensure_user_columns(PDO $pdo): void
+{
+    $columns = $pdo->query('PRAGMA table_info(users)')->fetchAll();
+    $existing = array_column($columns, 'name');
+    $needed = [
+        'role' => "ALTER TABLE users ADD COLUMN role TEXT NOT NULL DEFAULT 'member'",
+    ];
+
+    foreach ($needed as $column => $sql) {
+        if (!in_array($column, $existing, true)) {
+            $pdo->exec($sql);
+        }
+    }
 }
 
 function ensure_brand_columns(PDO $pdo): void

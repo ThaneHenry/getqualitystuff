@@ -1,5 +1,6 @@
 /storage/*.sqlite
 /storage/*.sqlite-*
+/storage/.local-server.pid
 /data/initial.csv
 /public/uploads/*
 !/public/uploads/.gitkeep

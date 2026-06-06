@@ -5,6 +5,7 @@ ROOT_DIR=$(CDPATH= cd -- "$(dirname -- "$0")/.." && pwd)
 PUBLIC_DIR="$ROOT_DIR/public"
 ROUTER_FILE="$PUBLIC_DIR/router.php"
 STORAGE_DIR="$ROOT_DIR/storage"
+PID_FILE="$STORAGE_DIR/.local-server.pid"
 
 HOST=${HOST:-127.0.0.1}
 PORT=${PORT:-8000}
@@ -31,8 +32,32 @@ fi
 
 mkdir -p "$STORAGE_DIR"
 
+if [ -f "$PID_FILE" ]; then
+    EXISTING_PID=$(cat "$PID_FILE" 2>/dev/null || true)
+    if [ -n "$EXISTING_PID" ] && kill -0 "$EXISTING_PID" 2>/dev/null; then
+        printf 'Error: the local server supervisor is already running with PID %s.\n' "$EXISTING_PID" >&2
+        exit 1
+    fi
+    rm -f "$PID_FILE"
+fi
+
 printf 'Starting Get Quality Stuff at http://%s:%s\n' "$HOST" "$PORT"
 printf 'Local admin: %s / %s\n' "$GET_QUALITY_STUFF_ADMIN_EMAIL" "$GET_QUALITY_STUFF_ADMIN_PASSWORD"
 printf '%s\n' 'Press Ctrl+C to stop the server.'
 
-exec php -S "$HOST:$PORT" -t "$PUBLIC_DIR" "$ROUTER_FILE"
+SERVER_PID=
+
+cleanup() {
+    if [ -n "$SERVER_PID" ] && kill -0 "$SERVER_PID" 2>/dev/null; then
+        kill -TERM "$SERVER_PID" 2>/dev/null || true
+        wait "$SERVER_PID" 2>/dev/null || true
+    fi
+    rm -f "$PID_FILE"
+}
+
+trap cleanup EXIT INT TERM HUP
+
+printf '%s\n' "$$" > "$PID_FILE"
+php -S "$HOST:$PORT" -t "$PUBLIC_DIR" "$ROUTER_FILE" &
+SERVER_PID=$!
+wait "$SERVER_PID"

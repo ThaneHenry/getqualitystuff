@@ -15,16 +15,66 @@ brew install php
 
 ## Run Locally
 
-Start the local PHP server:
+At the start of a work session, sync the primary production database from
+DreamHost and start the local PHP server:
 
 ```sh
-scripts/serve-local.sh
+scripts/start-work.sh
 ```
 
 Then open:
 
 ```text
 http://127.0.0.1:8000
+```
+
+The current local database is backed up to `backups/local` before it is replaced.
+If the production download or database integrity check fails, the existing local
+database is left unchanged and the server does not start. Database copies are
+kept private to the local user, and local backups older than 30 days are removed.
+
+To start without syncing production, or to sync without starting the server:
+
+```sh
+scripts/start-work.sh --offline
+scripts/start-work.sh --sync-only
+```
+
+To start the server directly without the work-session checks:
+
+```sh
+scripts/serve-local.sh
+```
+
+At the end of a work session, run:
+
+```sh
+scripts/end-work.sh
+```
+
+This checks changed PHP files and whitespace, stops this project's local server,
+verifies and snapshots the local database, reports uncommitted changes, and
+prints the recommended commit and deployment reminders. It does not commit,
+deploy, or upload the local database automatically. Servers started through
+`scripts/start-work.sh` or `scripts/serve-local.sh` are supervised and can be
+stopped reliably by the end-work script.
+
+To deploy reviewed and committed code to production, run:
+
+```sh
+scripts/deploy-production.sh
+```
+
+This refuses to deploy uncommitted changes, checks all tracked PHP files, backs
+up the primary production database, previews the DreamHost sync, requires a
+typed `DEPLOY` confirmation, deploys code while preserving the production
+database and uploads, and verifies that the production site returns a successful
+HTTP response.
+
+To run only the local pre-deployment checks:
+
+```sh
+scripts/deploy-production.sh --check-only
 ```
 
 The local server seeds a dev-only admin login if it does not already exist:
