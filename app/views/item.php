@@ -15,7 +15,10 @@
         <h1><?= e($item['name']) ?></h1>
         <p class="byline">by <a href="/brands/<?= e($item['brand_slug']) ?>"><?= e($item['brand_name']) ?></a></p>
         <p><?= e($item['description']) ?></p>
-        <?php if ($item['url']): ?><a class="primary-link" href="<?= e($item['url']) ?>" rel="noopener" target="_blank">View item</a><?php endif; ?>
+        <div class="detail-actions">
+            <?php if ($item['url']): ?><a class="primary-link" href="<?= e($item['url']) ?>" rel="noopener" target="_blank">View item</a><?php endif; ?>
+            <?php $entityType = 'item'; $entityId = (int) $item['id']; require __DIR__ . '/partials/save_button.php'; ?>
+        </div>
     </div>
     <div class="score-large">
         <span><?= e(score_label($item['average_score'] !== null ? (float) $item['average_score'] : null)) ?></span>

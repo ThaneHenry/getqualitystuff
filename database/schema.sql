@@ -3,7 +3,45 @@ CREATE TABLE IF NOT EXISTS users (
     email TEXT NOT NULL UNIQUE,
     password_hash TEXT NOT NULL,
     role TEXT NOT NULL DEFAULT 'member',
+    email_verified_at TEXT,
     created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS user_tokens (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    user_id INTEGER NOT NULL,
+    type TEXT NOT NULL CHECK (type IN ('email_verification', 'password_reset')),
+    token_hash TEXT NOT NULL UNIQUE,
+    expires_at TEXT NOT NULL,
+    created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+);
+
+CREATE TABLE IF NOT EXISTS saved_entries (
+    user_id INTEGER NOT NULL,
+    entity_type TEXT NOT NULL CHECK (entity_type IN ('brand', 'item')),
+    entity_id INTEGER NOT NULL,
+    created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (user_id, entity_type, entity_id),
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+);
+
+CREATE TABLE IF NOT EXISTS user_preferences (
+    user_id INTEGER PRIMARY KEY,
+    category_ids TEXT NOT NULL DEFAULT '',
+    criterion_slugs TEXT NOT NULL DEFAULT '',
+    created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+);
+
+CREATE TABLE IF NOT EXISTS recently_viewed (
+    user_id INTEGER NOT NULL,
+    entity_type TEXT NOT NULL CHECK (entity_type IN ('brand', 'item')),
+    entity_id INTEGER NOT NULL,
+    viewed_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (user_id, entity_type, entity_id),
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 );
 
 CREATE TABLE IF NOT EXISTS categories (
@@ -90,3 +128,6 @@ CREATE INDEX IF NOT EXISTS idx_items_brand_id ON items(brand_id);
 CREATE INDEX IF NOT EXISTS idx_items_category_id ON items(category_id);
 CREATE INDEX IF NOT EXISTS idx_scores_entity ON scores(entity_type, entity_id);
 CREATE INDEX IF NOT EXISTS idx_news_articles_published_at ON news_articles(published_at);
+CREATE INDEX IF NOT EXISTS idx_user_tokens_lookup ON user_tokens(token_hash, type, expires_at);
+CREATE INDEX IF NOT EXISTS idx_saved_entries_user ON saved_entries(user_id, created_at);
+CREATE INDEX IF NOT EXISTS idx_recently_viewed_user ON recently_viewed(user_id, viewed_at);

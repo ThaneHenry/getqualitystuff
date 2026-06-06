@@ -58,6 +58,7 @@ function ensure_user_columns(PDO $pdo): void
     $existing = array_column($columns, 'name');
     $needed = [
         'role' => "ALTER TABLE users ADD COLUMN role TEXT NOT NULL DEFAULT 'member'",
+        'email_verified_at' => 'ALTER TABLE users ADD COLUMN email_verified_at TEXT',
     ];
 
     foreach ($needed as $column => $sql) {

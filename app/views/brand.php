@@ -15,7 +15,10 @@
         <p class="eyebrow"><?= e(category_label($brand['category_name'] ?: 'Brand')) ?></p>
         <h1><?= e($brand['name']) ?></h1>
         <p><?= e($brand['description']) ?></p>
-        <?php if ($brand['url']): ?><a class="primary-link" href="<?= e($brand['url']) ?>" rel="noopener" target="_blank">Visit website</a><?php endif; ?>
+        <div class="detail-actions">
+            <?php if ($brand['url']): ?><a class="primary-link" href="<?= e($brand['url']) ?>" rel="noopener" target="_blank">Visit website</a><?php endif; ?>
+            <?php $entityType = 'brand'; $entityId = (int) $brand['id']; require __DIR__ . '/partials/save_button.php'; ?>
+        </div>
     </div>
     <?php if ($brand['average_score'] !== null): ?>
         <div class="score-large">

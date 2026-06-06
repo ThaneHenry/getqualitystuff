@@ -26,6 +26,7 @@ rsync "${RSYNC_FLAGS[@]}" \
   --exclude='.DS_Store' \
   --exclude='.dh-diag' \
   --exclude='README.md' \
+  --exclude='backups/' \
   --exclude='data/' \
   --exclude='scripts/' \
   --exclude='storage/*.sqlite' \

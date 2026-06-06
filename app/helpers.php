@@ -15,6 +15,26 @@ function redirect(string $path): never
     exit;
 }
 
+function safe_redirect_path(mixed $path, string $fallback = '/account'): string
+{
+    if (
+        !is_string($path)
+        || !str_starts_with($path, '/')
+        || str_starts_with($path, '//')
+        || preg_match('/[\r\n]/', $path)
+    ) {
+        return $fallback;
+    }
+
+    return $path;
+}
+
+function current_request_path(): string
+{
+    $uri = $_SERVER['REQUEST_URI'] ?? '/';
+    return safe_redirect_path($uri, '/');
+}
+
 function request_method(): string
 {
     return strtoupper($_SERVER['REQUEST_METHOD'] ?? 'GET');

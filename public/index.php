@@ -25,17 +25,19 @@ try {
 function route(string $path, string $method): void
 {
     if ($path === '/') {
+        $homeUser = current_user();
         render('home', [
             'title' => 'Home',
             'featuredBrands' => featured_brands(3),
             'featuredStores' => featured_stores(3),
             'featuredItems' => featured_items(3),
             'searchSuggestions' => search_suggestions(),
+            'forYouBrands' => $homeUser ? personalized_brands((int) $homeUser['id'], 3) : [],
             'categories' => all_categories(),
             'filters' => [
                 'q' => $_GET['q'] ?? '',
                 'category' => $_GET['category'] ?? '',
-                'sort' => $_GET['sort'] ?? 'featured',
+                'mode' => $_GET['mode'] ?? 'all',
             ],
         ]);
         return;
@@ -50,23 +52,23 @@ function route(string $path, string $method): void
             'filters' => [
                 'q' => $_GET['q'] ?? '',
                 'category' => $_GET['category'] ?? '',
-                'sort' => $_GET['sort'] ?? 'featured',
+                'mode' => $_GET['mode'] ?? 'all',
             ],
+            'isSearchPage' => true,
         ]);
         return;
     }
 
     if ($path === '/brands') {
-        $hasSearch = trim((string) ($_GET['q'] ?? '')) !== '' || trim((string) ($_GET['category'] ?? '')) !== '';
         render('brands_index', [
-            'title' => $hasSearch ? 'Results' : 'Brands',
+            'title' => 'Brands',
             'results' => directory_results($_GET),
             'categories' => all_categories(),
             'filters' => [
-                'q' => $_GET['q'] ?? '',
                 'category' => $_GET['category'] ?? '',
-                'sort' => $_GET['sort'] ?? 'featured',
+                'mode' => $_GET['mode'] ?? 'all',
             ],
+            'isSearchPage' => false,
         ]);
         return;
     }
@@ -74,7 +76,9 @@ function route(string $path, string $method): void
     if ($path === '/stores') {
         render('stores_index', [
             'title' => 'Stores',
-            'stores' => list_stores(),
+            'stores' => filter_directory_entries(list_stores(), $_GET),
+            'categories' => all_categories(),
+            'filters' => ['category' => $_GET['category'] ?? '', 'mode' => $_GET['mode'] ?? 'all'],
         ]);
         return;
     }
@@ -82,7 +86,9 @@ function route(string $path, string $method): void
     if ($path === '/items') {
         render('items_index', [
             'title' => 'Items',
-            'items' => list_items(),
+            'items' => filter_directory_entries(list_items(), $_GET),
+            'categories' => all_categories(),
+            'filters' => ['category' => $_GET['category'] ?? '', 'mode' => $_GET['mode'] ?? 'all'],
         ]);
         return;
     }
@@ -101,7 +107,10 @@ function route(string $path, string $method): void
             return;
         }
 
-        render('auth/register', ['title' => 'Create account']);
+        render('auth/register', [
+            'title' => 'Create account',
+            'redirect' => safe_redirect_path($_GET['redirect'] ?? null),
+        ]);
         return;
     }
 
@@ -109,18 +118,84 @@ function route(string $path, string $method): void
         if ($method === 'POST') {
             verify_csrf();
             if (login($_POST['email'] ?? '', $_POST['password'] ?? '')) {
-                redirect('/account');
+                redirect(safe_redirect_path($_POST['redirect'] ?? null));
             }
             render('auth/login', [
                 'title' => 'Log in',
                 'error' => 'Those login details did not match.',
                 'email' => $_POST['email'] ?? '',
+                'redirect' => safe_redirect_path($_POST['redirect'] ?? null),
             ]);
             return;
         }
 
-        render('auth/login', ['title' => 'Log in']);
+        render('auth/login', [
+            'title' => 'Log in',
+            'redirect' => safe_redirect_path($_GET['redirect'] ?? null),
+        ]);
         return;
+    }
+
+    if ($path === '/forgot-password') {
+        if ($method === 'POST') {
+            verify_csrf();
+            $user = find_user_by_email((string) ($_POST['email'] ?? ''));
+            if ($user) {
+                send_password_reset_email($user);
+            }
+            flash('If an account exists for that email, a reset link has been sent.');
+            redirect('/login');
+        }
+        render('auth/forgot_password', ['title' => 'Reset password']);
+        return;
+    }
+
+    if ($path === '/reset-password') {
+        $token = (string) ($_POST['token'] ?? $_GET['token'] ?? '');
+        if ($method === 'POST') {
+            verify_csrf();
+            $password = (string) ($_POST['password'] ?? '');
+            $confirmation = (string) ($_POST['password_confirmation'] ?? '');
+            if (strlen($password) < 8 || $password !== $confirmation) {
+                render('auth/reset_password', [
+                    'title' => 'Choose a new password',
+                    'token' => $token,
+                    'error' => 'Use matching passwords with at least 8 characters.',
+                ]);
+                return;
+            }
+            if (!reset_user_password($token, $password)) {
+                render('auth/reset_password', [
+                    'title' => 'Choose a new password',
+                    'token' => '',
+                    'error' => 'That reset link is invalid or has expired.',
+                ]);
+                return;
+            }
+            flash('Your password has been updated. You can log in now.');
+            redirect('/login');
+        }
+        render('auth/reset_password', ['title' => 'Choose a new password', 'token' => $token]);
+        return;
+    }
+
+    if ($path === '/verify-email') {
+        if (verify_user_email((string) ($_GET['token'] ?? ''))) {
+            flash('Your email address is verified.');
+        } else {
+            flash('That verification link is invalid or has expired.');
+        }
+        redirect('/account');
+    }
+
+    if ($path === '/account/resend-verification' && $method === 'POST') {
+        verify_csrf();
+        $user = require_user();
+        if (!$user['email_verified_at']) {
+            send_verification_email($user);
+            flash('A new verification link has been sent.');
+        }
+        redirect('/account');
     }
 
     if ($path === '/logout' && $method === 'POST') {
@@ -130,11 +205,45 @@ function route(string $path, string $method): void
     }
 
     if ($path === '/account') {
+        $user = current_user();
+        if (!$user) {
+            render('auth/entry', [
+                'title' => 'Join or log in',
+                'redirect' => safe_redirect_path($_GET['redirect'] ?? null),
+            ]);
+            return;
+        }
         render('auth/account', [
             'title' => 'Account',
-            'user' => require_user(),
+            'user' => $user,
+            'savedEntries' => account_entries((int) $user['id']),
+            'recentEntries' => account_entries((int) $user['id'], 'recent', 6),
+            'preferences' => user_preferences((int) $user['id']),
+            'categories' => all_categories(),
+            'criteria' => all_criteria(),
         ]);
         return;
+    }
+
+    if ($path === '/account/preferences' && $method === 'POST') {
+        verify_csrf();
+        $user = require_user();
+        save_user_preferences(
+            (int) $user['id'],
+            is_array($_POST['category_ids'] ?? null) ? $_POST['category_ids'] : [],
+            is_array($_POST['criterion_slugs'] ?? null) ? $_POST['criterion_slugs'] : []
+        );
+        flash('Your preferences have been updated.');
+        redirect('/account#preferences');
+    }
+
+    if ($path === '/account/save' && $method === 'POST') {
+        verify_csrf();
+        $user = require_user();
+        $entityType = (string) ($_POST['entity_type'] ?? '');
+        $entityId = (int) ($_POST['entity_id'] ?? 0);
+        set_entry_saved((int) $user['id'], $entityType, $entityId, ($_POST['saved'] ?? '') === '1');
+        redirect(safe_redirect_path($_POST['redirect'] ?? null));
     }
 
     if (preg_match('#^/brands/([a-z0-9-]+)$#', $path, $matches)) {
@@ -142,11 +251,16 @@ function route(string $path, string $method): void
         if (!$brand) {
             not_found();
         }
+        $viewer = current_user();
+        if ($viewer) {
+            record_recent_view((int) $viewer['id'], 'brand', (int) $brand['id']);
+        }
         render('brand', [
             'title' => $brand['name'],
             'brand' => $brand,
             'scores' => entity_scores('brand', (int) $brand['id']),
             'items' => brand_items((int) $brand['id']),
+            'isSaved' => $viewer ? is_entry_saved((int) $viewer['id'], 'brand', (int) $brand['id']) : false,
         ]);
         return;
     }
@@ -156,10 +270,15 @@ function route(string $path, string $method): void
         if (!$item) {
             not_found();
         }
+        $viewer = current_user();
+        if ($viewer) {
+            record_recent_view((int) $viewer['id'], 'item', (int) $item['id']);
+        }
         render('item', [
             'title' => $item['name'],
             'item' => $item,
             'scores' => entity_scores('item', (int) $item['id']),
+            'isSaved' => $viewer ? is_entry_saved((int) $viewer['id'], 'item', (int) $item['id']) : false,
         ]);
         return;
     }
@@ -223,14 +342,19 @@ function handle_register(): void
             'title' => 'Create account',
             'errors' => $errors,
             'email' => $email,
+            'redirect' => safe_redirect_path($_POST['redirect'] ?? null),
         ]);
         return;
     }
 
     $userId = create_user($email, $password);
     login_user_id($userId);
-    flash('Your account is ready.');
-    redirect('/account');
+    $user = find_user_by_email($email);
+    if ($user) {
+        send_verification_email($user);
+    }
+    flash('Your account is ready. Check your email to verify it.');
+    redirect(safe_redirect_path($_POST['redirect'] ?? null));
 }
 
 function route_admin(string $path, string $method): void

@@ -142,7 +142,7 @@ function list_items(?string $search = null): array
     }
 
     $stmt = db()->prepare(
-        "SELECT i.*, b.name AS brand_name, b.slug AS brand_slug, c.name AS category_name, AVG(s.score) AS average_score
+        "SELECT i.*, b.name AS brand_name, b.slug AS brand_slug, c.name AS category_name, c.slug AS category_slug, AVG(s.score) AS average_score
          FROM items i
          INNER JOIN brands b ON b.id = i.brand_id
          LEFT JOIN categories c ON c.id = i.category_id
@@ -186,7 +186,9 @@ function list_stores(?int $limit = null): array
             b.image_url,
             b.company_location,
             b.featured,
+            b.created_at,
             c.name AS category_name,
+            c.slug AS category_slug,
             AVG(s.score) AS average_score,
             COUNT(DISTINCT i.id) AS item_count
         FROM brands b
@@ -205,21 +207,56 @@ function list_stores(?int $limit = null): array
     return $stmt->fetchAll();
 }
 
+function filter_directory_entries(array $entries, array $filters): array
+{
+    $category = trim((string) ($filters['category'] ?? ''));
+    $mode = trim((string) ($filters['mode'] ?? 'all'));
+
+    if ($category !== '') {
+        $entries = array_values(array_filter(
+            $entries,
+            static fn (array $entry): bool => ($entry['category_slug'] ?? '') === $category
+        ));
+    }
+
+    if ($mode === 'featured') {
+        $entries = array_values(array_filter(
+            $entries,
+            static fn (array $entry): bool => (int) ($entry['featured'] ?? 0) === 1
+        ));
+    }
+
+    usort($entries, static function (array $a, array $b) use ($mode): int {
+        return match ($mode) {
+            'score' => ((float) ($b['average_score'] ?? -1)) <=> ((float) ($a['average_score'] ?? -1)),
+            'newest' => strcmp((string) ($b['created_at'] ?? ''), (string) ($a['created_at'] ?? '')),
+            default => ((int) ($b['featured'] ?? 0) <=> (int) ($a['featured'] ?? 0))
+                ?: strcmp((string) $a['name'], (string) $b['name']),
+        };
+    });
+
+    return $entries;
+}
+
 function directory_results(array $filters): array
 {
     $params = [];
     $where = [];
     $search = trim((string) ($filters['q'] ?? ''));
     $category = trim((string) ($filters['category'] ?? ''));
+    $mode = trim((string) ($filters['mode'] ?? 'all'));
 
     if ($category !== '') {
         $where[] = 'c.slug = :category';
         $params['category'] = $category;
     }
 
+    if ($mode === 'featured') {
+        $where[] = 'b.featured = 1';
+    }
+
     $whereSql = $where ? 'WHERE ' . implode(' AND ', $where) : '';
-    $sort = $filters['sort'] ?? 'featured';
-    $orderSql = match ($sort) {
+    $orderSql = match ($mode) {
         'score' => 'average_score IS NULL ASC, average_score DESC, b.name ASC',
         'newest' => 'b.created_at DESC',
         default => 'b.featured DESC, average_score IS NULL ASC, average_score DESC, b.name ASC',
@@ -267,17 +304,17 @@ function directory_results(array $filters): array
         }
     }
 
-    usort($ranked, function (array $a, array $b) use ($sort): int {
+    usort($ranked, function (array $a, array $b) use ($mode): int {
         $searchOrder = ($b['_search_score'] <=> $a['_search_score']);
         if ($searchOrder !== 0) {
             return $searchOrder;
         }
 
-        if ($sort === 'newest') {
+        if ($mode === 'newest') {
             return strcmp((string) $b['created_at'], (string) $a['created_at']);
         }
 
-        if ($sort === 'score') {
+        if ($mode === 'score') {
             return ((float) ($b['average_score'] ?? -1)) <=> ((float) ($a['average_score'] ?? -1));
         }
 
@@ -557,6 +594,140 @@ function brand_items(int $brandId): array
          ORDER BY i.featured DESC, i.name"
     );
     $stmt->execute(['brand_id' => $brandId]);
+    return $stmt->fetchAll();
+}
+
+function is_entry_saved(int $userId, string $entityType, int $entityId): bool
+{
+    $stmt = db()->prepare(
+        'SELECT 1 FROM saved_entries WHERE user_id = :user_id AND entity_type = :entity_type AND entity_id = :entity_id'
+    );
+    $stmt->execute(['user_id' => $userId, 'entity_type' => $entityType, 'entity_id' => $entityId]);
+    return (bool) $stmt->fetchColumn();
+}
+
+function set_entry_saved(int $userId, string $entityType, int $entityId, bool $saved): void
+{
+    if (!in_array($entityType, ['brand', 'item'], true)) {
+        throw new InvalidArgumentException('Invalid saved entry type.');
+    }
+
+    if ($saved) {
+        $stmt = db()->prepare(
+            'INSERT OR IGNORE INTO saved_entries (user_id, entity_type, entity_id)
+             VALUES (:user_id, :entity_type, :entity_id)'
+        );
+    } else {
+        $stmt = db()->prepare(
+            'DELETE FROM saved_entries WHERE user_id = :user_id AND entity_type = :entity_type AND entity_id = :entity_id'
+        );
+    }
+    $stmt->execute(['user_id' => $userId, 'entity_type' => $entityType, 'entity_id' => $entityId]);
+}
+
+function record_recent_view(int $userId, string $entityType, int $entityId): void
+{
+    $stmt = db()->prepare(
+        'INSERT INTO recently_viewed (user_id, entity_type, entity_id, viewed_at)
+         VALUES (:user_id, :entity_type, :entity_id, CURRENT_TIMESTAMP)
+         ON CONFLICT(user_id, entity_type, entity_id) DO UPDATE SET viewed_at = CURRENT_TIMESTAMP'
+    );
+    $stmt->execute(['user_id' => $userId, 'entity_type' => $entityType, 'entity_id' => $entityId]);
+}
+
+function account_entries(int $userId, string $source = 'saved', int $limit = 24): array
+{
+    $table = $source === 'recent' ? 'recently_viewed' : 'saved_entries';
+    $dateColumn = $source === 'recent' ? 'viewed_at' : 'created_at';
+    $stmt = db()->prepare(
+        "SELECT e.entity_type, e.entity_id, e.{$dateColumn} AS activity_at,
+                CASE WHEN e.entity_type = 'brand' THEN b.name ELSE i.name END AS name,
+                CASE WHEN e.entity_type = 'brand' THEN b.slug ELSE i.slug END AS slug,
+                CASE WHEN e.entity_type = 'brand' THEN b.description ELSE i.description END AS description,
+                CASE WHEN e.entity_type = 'brand' THEN b.image_url ELSE i.image_url END AS image_url,
+                c.name AS category_name,
+                ib.name AS brand_name
+         FROM {$table} e
+         LEFT JOIN brands b ON e.entity_type = 'brand' AND b.id = e.entity_id
+         LEFT JOIN items i ON e.entity_type = 'item' AND i.id = e.entity_id
+         LEFT JOIN brands ib ON ib.id = i.brand_id
+         LEFT JOIN categories c ON c.id = COALESCE(b.category_id, i.category_id)
+         WHERE e.user_id = :user_id AND (b.id IS NOT NULL OR i.id IS NOT NULL)
+         ORDER BY e.{$dateColumn} DESC
+         LIMIT :limit"
+    );
+    $stmt->bindValue('user_id', $userId, PDO::PARAM_INT);
+    $stmt->bindValue('limit', $limit, PDO::PARAM_INT);
+    $stmt->execute();
+    return $stmt->fetchAll();
+}
+
+function user_preferences(int $userId): array
+{
+    $stmt = db()->prepare('SELECT category_ids, criterion_slugs FROM user_preferences WHERE user_id = :user_id');
+    $stmt->execute(['user_id' => $userId]);
+    $preferences = $stmt->fetch();
+    return [
+        'category_ids' => $preferences && $preferences['category_ids'] !== ''
+            ? array_map('intval', explode(',', $preferences['category_ids']))
+            : [],
+        'criterion_slugs' => $preferences && $preferences['criterion_slugs'] !== ''
+            ? explode(',', $preferences['criterion_slugs'])
+            : [],
+    ];
+}
+
+function save_user_preferences(int $userId, array $categoryIds, array $criterionSlugs): void
+{
+    $validCategoryIds = array_map('intval', array_column(all_categories(), 'id'));
+    $validCriterionSlugs = array_column(all_criteria(), 'slug');
+    $categoryIds = array_values(array_intersect($validCategoryIds, array_map('intval', $categoryIds)));
+    $criterionSlugs = array_values(array_intersect($validCriterionSlugs, array_map('strval', $criterionSlugs)));
+
+    $stmt = db()->prepare(
+        'INSERT INTO user_preferences (user_id, category_ids, criterion_slugs)
+         VALUES (:user_id, :category_ids, :criterion_slugs)
+         ON CONFLICT(user_id) DO UPDATE SET
+            category_ids = excluded.category_ids,
+            criterion_slugs = excluded.criterion_slugs,
+            updated_at = CURRENT_TIMESTAMP'
+    );
+    $stmt->execute([
+        'user_id' => $userId,
+        'category_ids' => implode(',', $categoryIds),
+        'criterion_slugs' => implode(',', $criterionSlugs),
+    ]);
+}
+
+function personalized_brands(int $userId, int $limit = 6): array
+{
+    $preferences = user_preferences($userId);
+    if (!$preferences['category_ids'] && !$preferences['criterion_slugs']) {
+        return featured_brands($limit);
+    }
+
+    $categoryIds = $preferences['category_ids'] ?: [0];
+    $criterionSlugs = $preferences['criterion_slugs'] ?: [''];
+    $categoryPlaceholders = implode(',', array_fill(0, count($categoryIds), '?'));
+    $criterionPlaceholders = implode(',', array_fill(0, count($criterionSlugs), '?'));
+    $sql = "SELECT b.*, c.name AS category_name, AVG(s.score) AS average_score, COUNT(DISTINCT i.id) AS item_count,
+                   CASE WHEN b.category_id IN ({$categoryPlaceholders}) THEN 1 ELSE 0 END AS category_match,
+                   COUNT(DISTINCT CASE WHEN sc.slug IN ({$criterionPlaceholders}) AND s.score >= 3.5 THEN sc.slug END) AS criterion_matches
+            FROM brands b
+            LEFT JOIN categories c ON c.id = b.category_id
+            LEFT JOIN scores s ON s.entity_type = 'brand' AND s.entity_id = b.id
+            LEFT JOIN score_criteria sc ON sc.id = s.criterion_id
+            LEFT JOIN items i ON i.brand_id = b.id
+            GROUP BY b.id
+            ORDER BY category_match DESC, criterion_matches DESC, average_score IS NULL ASC, average_score DESC, b.featured DESC
+            LIMIT ?";
+    $stmt = db()->prepare($sql);
+    $position = 1;
+    foreach (array_merge($categoryIds, $criterionSlugs) as $value) {
+        $stmt->bindValue($position++, $value);
+    }
+    $stmt->bindValue($position, $limit, PDO::PARAM_INT);
+    $stmt->execute();
     return $stmt->fetchAll();
 }
 

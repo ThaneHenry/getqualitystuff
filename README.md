@@ -137,6 +137,20 @@ The optional number limits how many brands are checked in one run. Existing cust
 
 The first configured admin account is seeded automatically when the app starts, but only when both `GET_QUALITY_STUFF_ADMIN_EMAIL` and `GET_QUALITY_STUFF_ADMIN_PASSWORD` are set. The local start script sets dev-only credentials for testing.
 
+## Account Email
+
+Email verification and password recovery use a configurable mail transport:
+
+```sh
+GET_QUALITY_STUFF_APP_URL=https://getqualitystuff.com
+GET_QUALITY_STUFF_MAIL_TRANSPORT=mail
+GET_QUALITY_STUFF_MAIL_FROM=hello@getqualitystuff.com
+```
+
+`GET_QUALITY_STUFF_MAIL_TRANSPORT=mail` sends through PHP's configured mail service. The default `log` transport writes email previews to `storage/mail.log`, which is useful during local development.
+
+`GET_QUALITY_STUFF_DATABASE_PATH` can optionally point the app at a different SQLite database for testing or deployment.
+
 ## DreamHost Notes
 
 - Upload the project files.

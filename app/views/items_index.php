@@ -1,11 +1,14 @@
 <?php
 /** @var array $items */
+/** @var array $categories */
+/** @var array $filters */
 ?>
 <section class="page-header">
     <div>
         <p class="eyebrow">Items</p>
         <h1>Item directory</h1>
     </div>
+    <?php $filterPath = '/items'; require __DIR__ . '/partials/directory_filters.php'; ?>
 </section>
 
 <section class="directory-results" aria-labelledby="items-heading">

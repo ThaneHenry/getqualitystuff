@@ -12,6 +12,8 @@ PORT=${PORT:-8000}
 
 export GET_QUALITY_STUFF_ADMIN_EMAIL=${GET_QUALITY_STUFF_ADMIN_EMAIL:-local-admin@getqualitystuff.test}
 export GET_QUALITY_STUFF_ADMIN_PASSWORD=${GET_QUALITY_STUFF_ADMIN_PASSWORD:-local-admin-password}
+export GET_QUALITY_STUFF_APP_URL=${GET_QUALITY_STUFF_APP_URL:-http://$HOST:$PORT}
+export GET_QUALITY_STUFF_MAIL_TRANSPORT=${GET_QUALITY_STUFF_MAIL_TRANSPORT:-log}
 
 if ! command -v php >/dev/null 2>&1; then
     printf '%s\n' 'Error: PHP is not installed or is not available on PATH.' >&2

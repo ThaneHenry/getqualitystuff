@@ -2,7 +2,8 @@
 /** @var array $results */
 /** @var array $categories */
 /** @var array $filters */
-$hasSearch = trim((string) ($filters['q'] ?? '')) !== '' || trim((string) ($filters['category'] ?? '')) !== '';
+$isSearchPage = $isSearchPage ?? false;
+$hasSearch = $isSearchPage && trim((string) ($filters['q'] ?? '')) !== '';
 $resultCountLabel = $hasSearch
     ? (count($results) === 1 ? 'result' : 'results')
     : (count($results) === 1 ? 'brand' : 'brands');
@@ -12,6 +13,7 @@ $resultCountLabel = $hasSearch
         <p class="eyebrow"><?= $hasSearch ? 'Results' : 'Brands' ?></p>
         <h1><?= $hasSearch ? 'Matching results' : 'Brand directory' ?></h1>
     </div>
+    <?php if ($isSearchPage): ?>
     <form class="search-panel search-panel--compact" method="get" action="/search">
         <div class="search-panel__main">
             <div class="search-panel__input-wrap">
@@ -25,6 +27,9 @@ $resultCountLabel = $hasSearch
             </div>
         </div>
     </form>
+    <?php else: ?>
+        <?php $filterPath = '/brands'; require __DIR__ . '/partials/directory_filters.php'; ?>
+    <?php endif; ?>
 </section>
 
 <section class="directory-results" aria-labelledby="results-heading">

@@ -5,6 +5,7 @@
 /** @var array $categories */
 /** @var array $filters */
 /** @var array $searchSuggestions */
+/** @var array $forYouBrands */
 $featuredEntries = [];
 foreach ($featuredBrands as $brand) {
     $featuredEntries[] = [
@@ -56,7 +57,7 @@ foreach ($featuredItems as $item) {
     <form class="search-panel" method="get" action="/search" data-search-form>
         <div class="search-panel__main">
             <div class="search-panel__input-wrap">
-                <input type="search" name="q" placeholder="Search brands, stores, values, locations, categories" value="<?= e($filters['q'] ?? '') ?>" autocomplete="off" aria-expanded="false" aria-controls="home-search-dropdown">
+                <input type="search" name="q" placeholder="Search brands, stores, values, locations, categories" value="<?= e($filters['q'] ?? '') ?>" autocomplete="off" aria-expanded="false" aria-controls="home-search-dropdown" data-primary-search>
                 <button class="search-panel__icon-submit" type="submit" aria-label="Search">
                     <svg viewBox="0 0 24 24" aria-hidden="true">
                         <path d="m21 21-4.35-4.35"></path>
@@ -69,6 +70,34 @@ foreach ($featuredItems as $item) {
         <script type="application/json" data-search-suggestions><?= json_encode($searchSuggestions, JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT) ?></script>
     </form>
 </section>
+
+<?php if ($forYouBrands): ?>
+<section class="featured-section" aria-labelledby="for-you-heading">
+    <div class="section-heading">
+        <p class="eyebrow">Based on your preferences</p>
+        <h2 id="for-you-heading">For you</h2>
+    </div>
+    <div class="featured-card-grid">
+        <?php foreach ($forYouBrands as $brand): ?>
+            <article class="featured-card">
+                <a class="featured-card__link" href="/brands/<?= e($brand['slug']) ?>">
+                    <div class="featured-panel__image">
+                        <?php if ($brand['image_url']): ?><img src="<?= e($brand['image_url']) ?>" alt=""><?php else: ?><span><?= e(substr($brand['name'], 0, 1)) ?></span><?php endif; ?>
+                    </div>
+                    <div class="featured-card__body">
+                        <div class="card-meta">
+                            <?php if ($brand['category_name']): ?><span><?= e(category_label($brand['category_name'])) ?></span><?php endif; ?>
+                            <?php if ($brand['average_score'] !== null): ?><span><?= e(score_label((float) $brand['average_score'])) ?> score</span><?php endif; ?>
+                        </div>
+                        <h3><?= e($brand['name']) ?></h3>
+                        <p><?= e($brand['description'] ?: 'Brand details are being reviewed.') ?></p>
+                    </div>
+                </a>
+            </article>
+        <?php endforeach; ?>
+    </div>
+</section>
+<?php endif; ?>
 
 <?php if ($featuredEntries): ?>
 <section class="featured-section" aria-labelledby="featured-heading">
