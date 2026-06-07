@@ -60,6 +60,52 @@
         }
     });
 
+    const authDialog = document.querySelector('[data-auth-dialog]');
+
+    document.querySelectorAll('[data-auth-open]').forEach((link) => {
+        link.addEventListener('click', (event) => {
+            if (!authDialog) {
+                return;
+            }
+            event.preventDefault();
+            authDialog.showModal();
+            authDialog.querySelector('input[type="email"]')?.focus();
+        });
+    });
+
+    document.querySelectorAll('[data-auth-close]').forEach((button) => {
+        button.addEventListener('click', () => authDialog?.close());
+    });
+
+    authDialog?.addEventListener('click', (event) => {
+        if (event.target === authDialog) {
+            authDialog.close();
+        }
+    });
+
+    document.querySelectorAll('.featured-panel__image img, .listing-card__image img, .account-entry__image img').forEach((image) => {
+        const fallback = image.parentElement?.querySelector(':scope > span');
+        const showFallback = () => {
+            fallback?.removeAttribute('hidden');
+            image.remove();
+        };
+        const setThumbnailFit = () => {
+            const ratio = image.naturalWidth / image.naturalHeight;
+            fallback?.setAttribute('hidden', '');
+            image.classList.toggle('is-letterboxed', ratio > 1.6 || ratio < 0.625);
+        };
+
+        image.addEventListener('error', showFallback, { once: true });
+        image.addEventListener('load', setThumbnailFit, { once: true });
+        if (image.complete) {
+            if (image.naturalWidth === 0) {
+                showFallback();
+            } else {
+                setThumbnailFit();
+            }
+        }
+    });
+
     document.querySelectorAll('[data-password-toggle]').forEach((button) => {
         button.addEventListener('click', () => {
             const input = document.getElementById(button.getAttribute('aria-controls'));

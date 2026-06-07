@@ -50,10 +50,9 @@ $resultCountLabel = $hasSearch
         <article class="listing-card">
             <a href="<?= e($href) ?>" class="listing-card__link" aria-label="<?= e($result['name']) ?>">
                 <div class="listing-card__image">
+                    <span><?= e(substr($result['name'], 0, 1)) ?></span>
                     <?php if ($result['image_url']): ?>
                         <img src="<?= e($result['image_url']) ?>" alt="">
-                    <?php else: ?>
-                        <span><?= e(substr($result['name'], 0, 1)) ?></span>
                     <?php endif; ?>
                 </div>
                 <div class="listing-card__body">
@@ -68,10 +67,9 @@ $resultCountLabel = $hasSearch
                     </div>
                     <h2><?= e($result['name']) ?></h2>
                     <?php $strengths = editorial_lines($result['assessment_strengths'] ?? ''); ?>
-                    <p><?= e($strengths[0] ?? ($result['assessment_summary'] ?: assessment_status_message($result['assessment_status'] ?? 'listed'))) ?></p>
+                    <p><?= e($strengths[0] ?? ($result['assessment_summary'] ?: ($result['description'] ?: '...'))) ?></p>
                 </div>
             </a>
-            <div class="listing-card__actions"><?php $entityType = 'brand'; $entityId = (int) $result['id']; $isSaved = isset($savedEntryKeys['brand:' . $entityId]); require __DIR__ . '/partials/save_button.php'; ?></div>
         </article>
     <?php endforeach; ?>
     </div>

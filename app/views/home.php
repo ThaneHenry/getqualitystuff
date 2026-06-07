@@ -12,7 +12,7 @@ foreach ($featuredBrands as $brand) {
         'type' => 'Brand',
         'href' => '/brands/' . $brand['slug'],
         'name' => $brand['name'],
-        'description' => $brand['assessment_summary'] ?: assessment_status_message($brand['assessment_status'] ?? 'listed'),
+        'description' => $brand['assessment_summary'] ?: ($brand['description'] ?: '...'),
         'image_url' => $brand['image_url'],
         'category_name' => $brand['category_name'],
         'company_location' => $brand['company_location'],
@@ -26,7 +26,7 @@ foreach ($featuredStores as $store) {
         'type' => 'Store',
         'href' => '/brands/' . $store['slug'],
         'name' => $store['name'],
-        'description' => $store['assessment_summary'] ?: assessment_status_message($store['assessment_status'] ?? 'listed'),
+        'description' => $store['assessment_summary'] ?: ($store['description'] ?: '...'),
         'image_url' => $store['image_url'],
         'category_name' => $store['category_name'],
         'company_location' => $store['company_location'],
@@ -40,7 +40,7 @@ foreach ($featuredItems as $item) {
         'type' => 'Item',
         'href' => '/items/' . $item['slug'],
         'name' => $item['name'],
-        'description' => $item['assessment_summary'] ?: assessment_status_message($item['assessment_status'] ?? 'listed'),
+        'description' => $item['assessment_summary'] ?: ($item['description'] ?: '...'),
         'image_url' => $item['image_url'],
         'category_name' => $item['category_name'],
         'company_location' => '',
@@ -82,7 +82,8 @@ foreach ($featuredItems as $item) {
             <article class="featured-card">
                 <a class="featured-card__link" href="/brands/<?= e($brand['slug']) ?>">
                     <div class="featured-panel__image">
-                        <?php if ($brand['image_url']): ?><img src="<?= e($brand['image_url']) ?>" alt=""><?php else: ?><span><?= e(substr($brand['name'], 0, 1)) ?></span><?php endif; ?>
+                        <span><?= e(substr($brand['name'], 0, 1)) ?></span>
+                        <?php if ($brand['image_url']): ?><img src="<?= e($brand['image_url']) ?>" alt=""><?php endif; ?>
                     </div>
                     <div class="featured-card__body">
                         <div class="card-meta">
@@ -90,7 +91,7 @@ foreach ($featuredItems as $item) {
                             <?php if ($brand['average_score'] !== null): ?><span><?= e(score_label((float) $brand['average_score'])) ?> score</span><?php endif; ?>
                         </div>
                         <h3><?= e($brand['name']) ?></h3>
-                        <p><?= e($brand['assessment_summary'] ?: assessment_status_message($brand['assessment_status'] ?? 'listed')) ?></p>
+                        <p><?= e($brand['assessment_summary'] ?: ($brand['description'] ?: '...')) ?></p>
                     </div>
                 </a>
             </article>
@@ -109,15 +110,14 @@ foreach ($featuredItems as $item) {
             <article class="featured-card">
                 <a class="featured-card__link" href="<?= e($entry['href']) ?>">
                     <div class="featured-panel__image">
-                        <span class="type-tag featured-card__type"><?= e($entry['type']) ?></span>
+                        <span><?= e(substr($entry['name'], 0, 1)) ?></span>
                         <?php if ($entry['image_url']): ?>
                             <img src="<?= e($entry['image_url']) ?>" alt="">
-                        <?php else: ?>
-                            <span><?= e(substr($entry['name'], 0, 1)) ?></span>
                         <?php endif; ?>
                     </div>
                     <div class="featured-card__body">
                         <div class="card-meta">
+                            <span class="type-tag"><?= e($entry['type']) ?></span>
                             <?php if ($entry['category_name']): ?><span><?= e(category_label($entry['category_name'])) ?></span><?php endif; ?>
                             <?php if ($entry['brand_name']): ?><span><?= e($entry['brand_name']) ?></span><?php endif; ?>
                             <?php if ($entry['company_location']): ?><?= flag_markup($entry['company_location']) ?><?php endif; ?>

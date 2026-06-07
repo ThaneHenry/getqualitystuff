@@ -27,11 +27,14 @@ $isEdit = !empty($item);
     <label>Category <input name="category" value="<?= e($categoryName ?? '') ?>"></label>
     <label>Description <textarea name="description" rows="5"><?= e($item['description'] ?? '') ?></textarea></label>
     <label>Item URL <input type="url" name="url" value="<?= e($item['url'] ?? '') ?>"></label>
-    <label>Image URL <input type="url" name="image_url" value="<?= e($item['image_url'] ?? '') ?>"></label>
+    <label>Listing logo or image URL
+        <input type="url" name="image_url" value="<?= e($item['image_url'] ?? '') ?>">
+        <small class="muted">Use a square image, ideally at least 512 x 512 px. It will fill the listing thumbnail.</small>
+    </label>
     <?php if ($isEdit && !empty($item['url'])): ?>
         <div class="field-action">
             <button type="submit" formaction="/admin/items/<?= e((string) $item['id']) ?>/get-logo" formmethod="post" formnovalidate>Get logo</button>
-            <span class="muted">Uses the saved item URL.</span>
+            <span class="muted">Uses the saved item URL. Replace it if the result is not suitable for a square thumbnail.</span>
         </div>
     <?php endif; ?>
     <fieldset class="assessment-editor">

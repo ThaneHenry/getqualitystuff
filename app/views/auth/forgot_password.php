@@ -7,5 +7,5 @@
         <label>Email <input type="email" name="email" required autocomplete="email"></label>
         <button type="submit">Send reset link</button>
     </form>
-    <p class="auth-panel__footer"><a href="/login">Back to login</a></p>
+    <p class="auth-panel__footer"><a href="/login" data-auth-open>Back to login</a></p>
 </section>

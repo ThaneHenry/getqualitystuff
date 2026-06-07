@@ -21,10 +21,9 @@
             <article class="listing-card">
                 <a href="/items/<?= e($item['slug']) ?>" class="listing-card__link" aria-label="<?= e($item['name']) ?>">
                     <div class="listing-card__image">
+                        <span><?= e(substr($item['name'], 0, 1)) ?></span>
                         <?php if ($item['image_url']): ?>
                             <img src="<?= e($item['image_url']) ?>" alt="">
-                        <?php else: ?>
-                            <span><?= e(substr($item['name'], 0, 1)) ?></span>
                         <?php endif; ?>
                     </div>
                     <div class="listing-card__body">
@@ -34,10 +33,9 @@
                             <span class="assessment-status assessment-status--<?= e($item['assessment_status'] ?? 'listed') ?>"><?= e(assessment_status_label($item['assessment_status'] ?? 'listed')) ?></span>
                         </div>
                         <h2><?= e($item['name']) ?></h2>
-                        <p><?= e($item['assessment_summary'] ?: assessment_status_message($item['assessment_status'] ?? 'listed')) ?></p>
+                        <p><?= e($item['assessment_summary'] ?: ($item['description'] ?: '...')) ?></p>
                     </div>
                 </a>
-                <div class="listing-card__actions"><?php $entityType = 'item'; $entityId = (int) $item['id']; $isSaved = isset($savedEntryKeys['item:' . $entityId]); require __DIR__ . '/partials/save_button.php'; ?></div>
             </article>
         <?php endforeach; ?>
         <?php if (!$items): ?>

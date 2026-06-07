@@ -24,5 +24,5 @@
         <label>Confirm password <input type="password" name="password_confirmation" required minlength="8" autocomplete="new-password"></label>
         <button type="submit">Create account</button>
     </form>
-    <p class="auth-panel__footer">Already have an account? <a href="/login?redirect=<?= e(urlencode($redirect ?? '/account')) ?>">Log in</a>.</p>
+    <p class="auth-panel__footer">Already have an account? <a href="/login?redirect=<?= e(urlencode($redirect ?? '/account')) ?>" data-auth-open>Log in</a>.</p>
 </section>

@@ -14,14 +14,11 @@
         </div>
     </div>
     <div class="logo-showcase">
-        <div class="logo-showcase__horizontal">
-            <img src="/assets/gqs-logo-hor.png" alt="Get Quality Stuff horizontal logo">
-        </div>
-        <div class="logo-showcase__vertical">
-            <img src="/assets/gqs-logo-vert.png" alt="Get Quality Stuff vertical logo">
+        <div>
+            <img src="/assets/get-logo.png" alt="Get Quality Stuff logo">
         </div>
     </div>
-    <p class="brand-guide-note">Use the horizontal logo in wide spaces and the vertical logo where width is limited. Give the mark room to breathe and keep it on clear, uncluttered backgrounds.</p>
+    <p class="brand-guide-note">Give the mark room to breathe and keep it on clear, uncluttered backgrounds.</p>
 </section>
 
 <section class="brand-guide-section">
