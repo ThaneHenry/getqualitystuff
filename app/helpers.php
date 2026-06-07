@@ -81,6 +81,65 @@ function score_label(?float $score): string
     return $score === null ? 'No score' : number_format($score, 1);
 }
 
+function assessment_statuses(): array
+{
+    return [
+        'listed' => 'Listed',
+        'investigating' => 'Investigating',
+        'assessed' => 'Assessed',
+        'needs_update' => 'Needs update',
+    ];
+}
+
+function assessment_status_label(?string $status): string
+{
+    return assessment_statuses()[$status ?? ''] ?? 'Listed';
+}
+
+function assessment_status_message(?string $status): string
+{
+    return match ($status) {
+        'investigating' => 'Our investigative assessment is in progress.',
+        'assessed' => 'Investigatively assessed using publicly available evidence.',
+        'needs_update' => 'This assessment may be out of date and needs another review.',
+        default => 'Listed for discovery; a full assessment has not been completed.',
+    };
+}
+
+function icon_markup(string $name): string
+{
+    $paths = [
+        'external' => '<path d="M14 5h5v5"></path><path d="M10 14 19 5"></path><path d="M19 13v5a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1V6a1 1 0 0 1 1-1h5"></path>',
+        'filter' => '<path d="M4 6h16"></path><path d="M7 12h10"></path><path d="M10 18h4"></path>',
+        'login' => '<path d="M10 17l5-5-5-5"></path><path d="M15 12H3"></path><path d="M14 4h5a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2h-5"></path>',
+        'report' => '<path d="M5 21V5"></path><path d="M5 5h11l-1 4 1 4H5"></path>',
+        'save' => '<path d="M6 4h12v16l-6-4-6 4z"></path>',
+        'saved' => '<path d="M6 4h12v16l-6-4-6 4z" fill="currentColor"></path>',
+        'suggest' => '<path d="M12 3v18"></path><path d="M3 12h18"></path>',
+    ];
+    if (!isset($paths[$name])) {
+        return '';
+    }
+
+    return '<svg class="button-icon" viewBox="0 0 24 24" aria-hidden="true">' . $paths[$name] . '</svg>';
+}
+
+function editorial_lines(?string $value): array
+{
+    return array_values(array_filter(
+        array_map('trim', preg_split('/\R/', (string) $value) ?: []),
+        static fn (string $line): bool => $line !== ''
+    ));
+}
+
+function public_categories(): array
+{
+    return array_values(array_filter(
+        all_categories(),
+        static fn (array $category): bool => !in_array(strtolower($category['name']), ['test', 'various', 'girl stuff'], true)
+    ));
+}
+
 function category_label(?string $value): string
 {
     $value = trim((string) $value);
@@ -332,6 +391,9 @@ function render(string $template, array $data = []): void
 {
     extract($data, EXTR_SKIP);
     $appName = config()['app_name'];
+    $capabilities = site_capabilities();
+    $renderUser = current_user();
+    $savedEntryKeys = $renderUser ? saved_entry_keys((int) $renderUser['id']) : [];
     $flash = flash();
 
     require __DIR__ . '/views/layout.php';

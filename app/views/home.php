@@ -12,7 +12,7 @@ foreach ($featuredBrands as $brand) {
         'type' => 'Brand',
         'href' => '/brands/' . $brand['slug'],
         'name' => $brand['name'],
-        'description' => $brand['description'] ?: 'Brand details are being reviewed.',
+        'description' => $brand['assessment_summary'] ?: assessment_status_message($brand['assessment_status'] ?? 'listed'),
         'image_url' => $brand['image_url'],
         'category_name' => $brand['category_name'],
         'company_location' => $brand['company_location'],
@@ -26,7 +26,7 @@ foreach ($featuredStores as $store) {
         'type' => 'Store',
         'href' => '/brands/' . $store['slug'],
         'name' => $store['name'],
-        'description' => $store['description'] ?: 'Store details are being reviewed.',
+        'description' => $store['assessment_summary'] ?: assessment_status_message($store['assessment_status'] ?? 'listed'),
         'image_url' => $store['image_url'],
         'category_name' => $store['category_name'],
         'company_location' => $store['company_location'],
@@ -40,7 +40,7 @@ foreach ($featuredItems as $item) {
         'type' => 'Item',
         'href' => '/items/' . $item['slug'],
         'name' => $item['name'],
-        'description' => $item['description'] ?: 'Item details are being reviewed.',
+        'description' => $item['assessment_summary'] ?: assessment_status_message($item['assessment_status'] ?? 'listed'),
         'image_url' => $item['image_url'],
         'category_name' => $item['category_name'],
         'company_location' => '',
@@ -90,7 +90,7 @@ foreach ($featuredItems as $item) {
                             <?php if ($brand['average_score'] !== null): ?><span><?= e(score_label((float) $brand['average_score'])) ?> score</span><?php endif; ?>
                         </div>
                         <h3><?= e($brand['name']) ?></h3>
-                        <p><?= e($brand['description'] ?: 'Brand details are being reviewed.') ?></p>
+                        <p><?= e($brand['assessment_summary'] ?: assessment_status_message($brand['assessment_status'] ?? 'listed')) ?></p>
                     </div>
                 </a>
             </article>

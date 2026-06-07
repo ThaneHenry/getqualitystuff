@@ -1,6 +1,7 @@
 <?php
 /** @var array|null $brand */
 /** @var array $scores */
+/** @var string $assessmentSources */
 $isEdit = !empty($brand);
 ?>
 <section class="admin-header">
@@ -27,6 +28,27 @@ $isEdit = !empty($brand);
     <label>Manufacturing location <input name="manufacturing_location" maxlength="80" value="<?= e($brand['manufacturing_location'] ?? '') ?>"></label>
     <label>Warranty <input name="warranty" maxlength="160" value="<?= e($brand['warranty'] ?? '') ?>"></label>
     <label>Notes <textarea name="notes" rows="3"><?= e($brand['notes'] ?? '') ?></textarea></label>
+    <fieldset class="assessment-editor">
+        <legend>Public investigative assessment</legend>
+        <label>Status <select name="assessment_status"><?php foreach (assessment_statuses() as $value => $label): ?><option value="<?= e($value) ?>" <?= ($brand['assessment_status'] ?? 'listed') === $value ? 'selected' : '' ?>><?= e($label) ?></option><?php endforeach; ?></select></label>
+        <label>Assessment summary <textarea name="assessment_summary" rows="4"><?= e($brand['assessment_summary'] ?? '') ?></textarea></label>
+        <label>Reasons to consider, one per line <textarea name="assessment_strengths" rows="4"><?= e($brand['assessment_strengths'] ?? '') ?></textarea></label>
+        <label>Caveats, one per line <textarea name="assessment_caveats" rows="4"><?= e($brand['assessment_caveats'] ?? '') ?></textarea></label>
+        <label>Sources, one per line as Label | URL <textarea name="assessment_sources" rows="4"><?= e($assessmentSources ?? '') ?></textarea></label>
+        <label>Reviewed date <input type="date" name="reviewed_at" value="<?= e(isset($brand['reviewed_at']) ? substr((string) $brand['reviewed_at'], 0, 10) : '') ?>"></label>
+    </fieldset>
+    <fieldset class="assessment-editor">
+        <legend>GQS awards</legend>
+        <p class="muted">Assign only when the published evidence supports the award criteria.</p>
+        <div class="award-choice-grid">
+            <?php foreach ($awards as $award): ?>
+                <label>
+                    <input type="checkbox" name="award_ids[]" value="<?= e((string) $award['id']) ?>" <?= in_array((int) $award['id'], $brandAwardIds, true) ? 'checked' : '' ?>>
+                    <span><strong><?= e($award['name']) ?></strong><small><?= e($award['description']) ?></small></span>
+                </label>
+            <?php endforeach; ?>
+        </div>
+    </fieldset>
     <label class="checkbox-label"><input type="checkbox" name="featured" value="1" <?= !empty($brand['featured']) ? 'checked' : '' ?>> Featured</label>
     <label class="checkbox-label"><input type="checkbox" name="popular" value="1" <?= !empty($brand['popular']) ? 'checked' : '' ?>> Popular</label>
 

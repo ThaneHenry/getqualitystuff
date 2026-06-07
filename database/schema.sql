@@ -17,6 +17,19 @@ CREATE TABLE IF NOT EXISTS user_tokens (
     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 );
 
+CREATE TABLE IF NOT EXISTS user_identities (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    user_id INTEGER NOT NULL,
+    provider TEXT NOT NULL,
+    provider_subject TEXT NOT NULL,
+    email TEXT NOT NULL DEFAULT '',
+    created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE (provider, provider_subject),
+    UNIQUE (user_id, provider),
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+);
+
 CREATE TABLE IF NOT EXISTS saved_entries (
     user_id INTEGER NOT NULL,
     entity_type TEXT NOT NULL CHECK (entity_type IN ('brand', 'item')),
@@ -63,6 +76,11 @@ CREATE TABLE IF NOT EXISTS brands (
     manufacturing_location TEXT NOT NULL DEFAULT '',
     warranty TEXT NOT NULL DEFAULT '',
     notes TEXT NOT NULL DEFAULT '',
+    assessment_status TEXT NOT NULL DEFAULT 'listed' CHECK (assessment_status IN ('listed', 'investigating', 'assessed', 'needs_update')),
+    assessment_summary TEXT NOT NULL DEFAULT '',
+    assessment_strengths TEXT NOT NULL DEFAULT '',
+    assessment_caveats TEXT NOT NULL DEFAULT '',
+    reviewed_at TEXT,
     featured INTEGER NOT NULL DEFAULT 0,
     popular INTEGER NOT NULL DEFAULT 0,
     created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -79,6 +97,11 @@ CREATE TABLE IF NOT EXISTS items (
     description TEXT NOT NULL DEFAULT '',
     url TEXT NOT NULL DEFAULT '',
     image_url TEXT NOT NULL DEFAULT '',
+    assessment_status TEXT NOT NULL DEFAULT 'listed' CHECK (assessment_status IN ('listed', 'investigating', 'assessed', 'needs_update')),
+    assessment_summary TEXT NOT NULL DEFAULT '',
+    assessment_strengths TEXT NOT NULL DEFAULT '',
+    assessment_caveats TEXT NOT NULL DEFAULT '',
+    reviewed_at TEXT,
     featured INTEGER NOT NULL DEFAULT 0,
     popular INTEGER NOT NULL DEFAULT 0,
     created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -104,6 +127,46 @@ CREATE TABLE IF NOT EXISTS scores (
     FOREIGN KEY (criterion_id) REFERENCES score_criteria(id) ON DELETE CASCADE
 );
 
+CREATE TABLE IF NOT EXISTS assessment_sources (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    entity_type TEXT NOT NULL CHECK (entity_type IN ('brand', 'item')),
+    entity_id INTEGER NOT NULL,
+    label TEXT NOT NULL DEFAULT '',
+    url TEXT NOT NULL,
+    created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS awards (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    slug TEXT NOT NULL UNIQUE,
+    name TEXT NOT NULL UNIQUE,
+    description TEXT NOT NULL DEFAULT '',
+    criteria TEXT NOT NULL DEFAULT '',
+    created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS brand_awards (
+    brand_id INTEGER NOT NULL,
+    award_id INTEGER NOT NULL,
+    awarded_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    note TEXT NOT NULL DEFAULT '',
+    PRIMARY KEY (brand_id, award_id),
+    FOREIGN KEY (brand_id) REFERENCES brands(id) ON DELETE CASCADE,
+    FOREIGN KEY (award_id) REFERENCES awards(id) ON DELETE CASCADE
+);
+
+CREATE TABLE IF NOT EXISTS public_feedback (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    type TEXT NOT NULL CHECK (type IN ('suggest_brand', 'outdated_information')),
+    entity_type TEXT CHECK (entity_type IN ('brand', 'item')),
+    entity_id INTEGER,
+    contact_email TEXT NOT NULL DEFAULT '',
+    message TEXT NOT NULL,
+    status TEXT NOT NULL DEFAULT 'new' CHECK (status IN ('new', 'reviewing', 'resolved')),
+    created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
 CREATE TABLE IF NOT EXISTS import_logs (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     filename TEXT NOT NULL,
@@ -127,7 +190,11 @@ CREATE INDEX IF NOT EXISTS idx_brands_category_id ON brands(category_id);
 CREATE INDEX IF NOT EXISTS idx_items_brand_id ON items(brand_id);
 CREATE INDEX IF NOT EXISTS idx_items_category_id ON items(category_id);
 CREATE INDEX IF NOT EXISTS idx_scores_entity ON scores(entity_type, entity_id);
+CREATE INDEX IF NOT EXISTS idx_assessment_sources_entity ON assessment_sources(entity_type, entity_id);
+CREATE INDEX IF NOT EXISTS idx_brand_awards_award_id ON brand_awards(award_id);
+CREATE INDEX IF NOT EXISTS idx_public_feedback_status ON public_feedback(status, created_at);
 CREATE INDEX IF NOT EXISTS idx_news_articles_published_at ON news_articles(published_at);
 CREATE INDEX IF NOT EXISTS idx_user_tokens_lookup ON user_tokens(token_hash, type, expires_at);
+CREATE INDEX IF NOT EXISTS idx_user_identities_user ON user_identities(user_id);
 CREATE INDEX IF NOT EXISTS idx_saved_entries_user ON saved_entries(user_id, created_at);
 CREATE INDEX IF NOT EXISTS idx_recently_viewed_user ON recently_viewed(user_id, viewed_at);

@@ -14,6 +14,142 @@ function all_criteria(): array
     return db()->query('SELECT * FROM score_criteria ORDER BY id')->fetchAll();
 }
 
+function all_awards(): array
+{
+    return db()->query('SELECT * FROM awards ORDER BY id')->fetchAll();
+}
+
+function brand_awards(int $brandId): array
+{
+    $stmt = db()->prepare(
+        'SELECT a.*, ba.awarded_at, ba.note
+         FROM brand_awards ba
+         INNER JOIN awards a ON a.id = ba.award_id
+         WHERE ba.brand_id = :brand_id
+         ORDER BY a.id'
+    );
+    $stmt->execute(['brand_id' => $brandId]);
+    return $stmt->fetchAll();
+}
+
+function save_brand_awards(int $brandId, array $awardIds): void
+{
+    $validIds = array_map(static fn (array $award): int => (int) $award['id'], all_awards());
+    $selectedIds = array_values(array_unique(array_intersect(
+        $validIds,
+        array_map('intval', $awardIds)
+    )));
+
+    $delete = db()->prepare('DELETE FROM brand_awards WHERE brand_id = :brand_id');
+    $delete->execute(['brand_id' => $brandId]);
+
+    $insert = db()->prepare('INSERT INTO brand_awards (brand_id, award_id) VALUES (:brand_id, :award_id)');
+    foreach ($selectedIds as $awardId) {
+        $insert->execute(['brand_id' => $brandId, 'award_id' => $awardId]);
+    }
+}
+
+function site_capabilities(): array
+{
+    return [
+        'items' => (int) db()->query('SELECT COUNT(*) FROM items')->fetchColumn() > 0,
+        'scores' => (int) db()->query('SELECT COUNT(*) FROM scores')->fetchColumn() > 0,
+    ];
+}
+
+function directory_filter_options(): array
+{
+    $companyLocations = db()->query("SELECT DISTINCT company_location AS value FROM brands WHERE company_location != '' ORDER BY company_location")->fetchAll();
+    $manufacturingLocations = db()->query("SELECT DISTINCT manufacturing_location AS value FROM brands WHERE manufacturing_location != '' ORDER BY manufacturing_location")->fetchAll();
+    $validCountryCodes = static fn (array $rows): array => array_values(array_filter(
+        array_column($rows, 'value'),
+        static fn (string $value): bool => (bool) preg_match('/^[A-Z]{2}$/', $value)
+    ));
+    return [
+        'categories' => public_categories(),
+        'company_locations' => $validCountryCodes($companyLocations),
+        'manufacturing_locations' => $validCountryCodes($manufacturingLocations),
+        'statuses' => assessment_statuses(),
+    ];
+}
+
+function assessment_sources(string $type, int $entityId): array
+{
+    $stmt = db()->prepare('SELECT * FROM assessment_sources WHERE entity_type = :type AND entity_id = :entity_id ORDER BY id');
+    $stmt->execute(['type' => $type, 'entity_id' => $entityId]);
+    return $stmt->fetchAll();
+}
+
+function save_assessment_sources(string $type, int $entityId, string $raw): void
+{
+    $delete = db()->prepare('DELETE FROM assessment_sources WHERE entity_type = :type AND entity_id = :entity_id');
+    $delete->execute(['type' => $type, 'entity_id' => $entityId]);
+    $insert = db()->prepare('INSERT INTO assessment_sources (entity_type, entity_id, label, url) VALUES (:type, :entity_id, :label, :url)');
+    foreach (editorial_lines($raw) as $line) {
+        [$label, $url] = array_pad(array_map('trim', explode('|', $line, 2)), 2, '');
+        if ($url === '') {
+            $url = $label;
+            $label = '';
+        }
+        if (filter_var($url, FILTER_VALIDATE_URL)) {
+            $insert->execute(['type' => $type, 'entity_id' => $entityId, 'label' => $label, 'url' => $url]);
+        }
+    }
+}
+
+function assessment_sources_editor_value(string $type, int $entityId): string
+{
+    return implode("\n", array_map(
+        static fn (array $source): string => ($source['label'] !== '' ? $source['label'] . ' | ' : '') . $source['url'],
+        assessment_sources($type, $entityId)
+    ));
+}
+
+function submit_public_feedback(array $data): void
+{
+    $type = in_array($data['type'] ?? '', ['suggest_brand', 'outdated_information'], true) ? $data['type'] : 'suggest_brand';
+    $entityType = in_array($data['entity_type'] ?? '', ['brand', 'item'], true) ? $data['entity_type'] : null;
+    $message = trim((string) ($data['message'] ?? ''));
+    if ($message === '') {
+        throw new InvalidArgumentException('Please include a message.');
+    }
+    $email = trim((string) ($data['contact_email'] ?? ''));
+    if ($email !== '' && !filter_var($email, FILTER_VALIDATE_EMAIL)) {
+        throw new InvalidArgumentException('Enter a valid email address or leave it blank.');
+    }
+    $stmt = db()->prepare(
+        'INSERT INTO public_feedback (type, entity_type, entity_id, contact_email, message)
+         VALUES (:type, :entity_type, :entity_id, :contact_email, :message)'
+    );
+    $stmt->execute([
+        'type' => $type,
+        'entity_type' => $entityType,
+        'entity_id' => $entityType ? (int) ($data['entity_id'] ?? 0) : null,
+        'contact_email' => $email,
+        'message' => $message,
+    ]);
+}
+
+function public_feedback_entries(): array
+{
+    return db()->query(
+        "SELECT f.*, CASE WHEN f.entity_type = 'brand' THEN b.name WHEN f.entity_type = 'item' THEN i.name END AS entity_name
+         FROM public_feedback f
+         LEFT JOIN brands b ON f.entity_type = 'brand' AND b.id = f.entity_id
+         LEFT JOIN items i ON f.entity_type = 'item' AND i.id = f.entity_id
+         ORDER BY CASE f.status WHEN 'new' THEN 0 WHEN 'reviewing' THEN 1 ELSE 2 END, f.created_at DESC"
+    )->fetchAll();
+}
+
+function update_public_feedback_status(int $id, string $status): void
+{
+    if (!in_array($status, ['new', 'reviewing', 'resolved'], true)) {
+        throw new InvalidArgumentException('Invalid feedback status.');
+    }
+    $stmt = db()->prepare('UPDATE public_feedback SET status = :status, updated_at = CURRENT_TIMESTAMP WHERE id = :id');
+    $stmt->execute(['status' => $status, 'id' => $id]);
+}
+
 function find_or_create_category(?string $name): ?int
 {
     $name = trim((string) $name);
@@ -142,7 +278,8 @@ function list_items(?string $search = null): array
     }
 
     $stmt = db()->prepare(
-        "SELECT i.*, b.name AS brand_name, b.slug AS brand_slug, c.name AS category_name, c.slug AS category_slug, AVG(s.score) AS average_score
+        "SELECT i.*, b.name AS brand_name, b.slug AS brand_slug, b.company_location, b.manufacturing_location, b.warranty,
+                c.name AS category_name, c.slug AS category_slug, AVG(s.score) AS average_score
          FROM items i
          INNER JOIN brands b ON b.id = i.brand_id
          LEFT JOIN categories c ON c.id = i.category_id
@@ -185,6 +322,13 @@ function list_stores(?int $limit = null): array
             b.url,
             b.image_url,
             b.company_location,
+            b.manufacturing_location,
+            b.warranty,
+            b.assessment_status,
+            b.assessment_summary,
+            b.assessment_strengths,
+            b.assessment_caveats,
+            b.reviewed_at,
             b.featured,
             b.created_at,
             c.name AS category_name,
@@ -211,6 +355,10 @@ function filter_directory_entries(array $entries, array $filters): array
 {
     $category = trim((string) ($filters['category'] ?? ''));
     $mode = trim((string) ($filters['mode'] ?? 'all'));
+    $status = trim((string) ($filters['status'] ?? ''));
+    $company = trim((string) ($filters['company'] ?? ''));
+    $manufacturing = trim((string) ($filters['manufacturing'] ?? ''));
+    $warranty = trim((string) ($filters['warranty'] ?? ''));
 
     if ($category !== '') {
         $entries = array_values(array_filter(
@@ -218,6 +366,12 @@ function filter_directory_entries(array $entries, array $filters): array
             static fn (array $entry): bool => ($entry['category_slug'] ?? '') === $category
         ));
     }
+    $entries = array_values(array_filter($entries, static function (array $entry) use ($status, $company, $manufacturing, $warranty): bool {
+        return ($status === '' || ($entry['assessment_status'] ?? 'listed') === $status)
+            && ($company === '' || ($entry['company_location'] ?? '') === $company)
+            && ($manufacturing === '' || ($entry['manufacturing_location'] ?? '') === $manufacturing)
+            && ($warranty !== 'yes' || trim((string) ($entry['warranty'] ?? '')) !== '');
+    }));
 
     if ($mode === 'featured') {
         $entries = array_values(array_filter(
@@ -245,6 +399,10 @@ function directory_results(array $filters): array
     $search = trim((string) ($filters['q'] ?? ''));
     $category = trim((string) ($filters['category'] ?? ''));
     $mode = trim((string) ($filters['mode'] ?? 'all'));
+    $status = trim((string) ($filters['status'] ?? ''));
+    $company = trim((string) ($filters['company'] ?? ''));
+    $manufacturing = trim((string) ($filters['manufacturing'] ?? ''));
+    $warranty = trim((string) ($filters['warranty'] ?? ''));
 
     if ($category !== '') {
         $where[] = 'c.slug = :category';
@@ -253,6 +411,21 @@ function directory_results(array $filters): array
 
     if ($mode === 'featured') {
         $where[] = 'b.featured = 1';
+    }
+    if ($status !== '') {
+        $where[] = 'b.assessment_status = :status';
+        $params['status'] = $status;
+    }
+    if ($company !== '') {
+        $where[] = 'b.company_location = :company';
+        $params['company'] = $company;
+    }
+    if ($manufacturing !== '') {
+        $where[] = 'b.manufacturing_location = :manufacturing';
+        $params['manufacturing'] = $manufacturing;
+    }
+    if ($warranty === 'yes') {
+        $where[] = "b.warranty != ''";
     }
 
     $whereSql = $where ? 'WHERE ' . implode(' AND ', $where) : '';
@@ -272,6 +445,12 @@ function directory_results(array $filters): array
             b.image_url,
             b.company_location,
             b.manufacturing_location,
+            b.warranty,
+            b.assessment_status,
+            b.assessment_summary,
+            b.assessment_strengths,
+            b.assessment_caveats,
+            b.reviewed_at,
             b.featured,
             b.created_at,
             c.name AS category_name,
@@ -338,6 +517,9 @@ function fuzzy_brand_score(string $query, array $brand): int
         $brand['category_name'] ?? '',
         $brand['company_location'] ?? '',
         $brand['manufacturing_location'] ?? '',
+        $brand['assessment_summary'] ?? '',
+        $brand['assessment_strengths'] ?? '',
+        $brand['assessment_caveats'] ?? '',
     ]));
 
     if (str_contains($name, $query)) {
@@ -481,6 +663,11 @@ function featured_brands(int $limit = 6): array
             b.image_url,
             b.company_location,
             b.manufacturing_location,
+            b.assessment_status,
+            b.assessment_summary,
+            b.assessment_strengths,
+            b.assessment_caveats,
+            b.reviewed_at,
             c.name AS category_name,
             AVG(s.score) AS average_score,
             COUNT(DISTINCT i.id) AS item_count
@@ -604,6 +791,16 @@ function is_entry_saved(int $userId, string $entityType, int $entityId): bool
     );
     $stmt->execute(['user_id' => $userId, 'entity_type' => $entityType, 'entity_id' => $entityId]);
     return (bool) $stmt->fetchColumn();
+}
+
+function saved_entry_keys(int $userId): array
+{
+    $stmt = db()->prepare('SELECT entity_type, entity_id FROM saved_entries WHERE user_id = :user_id');
+    $stmt->execute(['user_id' => $userId]);
+    return array_fill_keys(array_map(
+        static fn (array $entry): string => $entry['entity_type'] . ':' . $entry['entity_id'],
+        $stmt->fetchAll()
+    ), true);
 }
 
 function set_entry_saved(int $userId, string $entityType, int $entityId, bool $saved): void
@@ -747,6 +944,11 @@ function save_brand(array $data, ?int $id = null): int
         'manufacturing_location' => strtoupper(trim((string) ($data['manufacturing_location'] ?? ''))),
         'warranty' => trim((string) ($data['warranty'] ?? '')),
         'notes' => trim((string) ($data['notes'] ?? '')),
+        'assessment_status' => array_key_exists((string) ($data['assessment_status'] ?? ''), assessment_statuses()) ? $data['assessment_status'] : 'listed',
+        'assessment_summary' => trim((string) ($data['assessment_summary'] ?? '')),
+        'assessment_strengths' => trim((string) ($data['assessment_strengths'] ?? '')),
+        'assessment_caveats' => trim((string) ($data['assessment_caveats'] ?? '')),
+        'reviewed_at' => trim((string) ($data['reviewed_at'] ?? '')) ?: null,
         'featured' => bool_from_input($data['featured'] ?? 0),
         'popular' => bool_from_input($data['popular'] ?? 0),
     ];
@@ -763,8 +965,8 @@ function save_brand(array $data, ?int $id = null): int
 
     if ($id === null) {
         $stmt = db()->prepare(
-            'INSERT INTO brands (name, slug, category_id, description, url, image_url, company_location, manufacturing_location, warranty, notes, featured, popular)
-             VALUES (:name, :slug, :category_id, :description, :url, :image_url, :company_location, :manufacturing_location, :warranty, :notes, :featured, :popular)'
+            'INSERT INTO brands (name, slug, category_id, description, url, image_url, company_location, manufacturing_location, warranty, notes, assessment_status, assessment_summary, assessment_strengths, assessment_caveats, reviewed_at, featured, popular)
+             VALUES (:name, :slug, :category_id, :description, :url, :image_url, :company_location, :manufacturing_location, :warranty, :notes, :assessment_status, :assessment_summary, :assessment_strengths, :assessment_caveats, :reviewed_at, :featured, :popular)'
         );
         $stmt->execute($params);
         return (int) db()->lastInsertId();
@@ -776,7 +978,9 @@ function save_brand(array $data, ?int $id = null): int
          SET name = :name, slug = :slug, category_id = :category_id, description = :description,
              url = :url, image_url = :image_url, company_location = :company_location,
              manufacturing_location = :manufacturing_location, warranty = :warranty,
-             notes = :notes, featured = :featured, popular = :popular, updated_at = CURRENT_TIMESTAMP
+             notes = :notes, assessment_status = :assessment_status, assessment_summary = :assessment_summary,
+             assessment_strengths = :assessment_strengths, assessment_caveats = :assessment_caveats, reviewed_at = :reviewed_at,
+             featured = :featured, popular = :popular, updated_at = CURRENT_TIMESTAMP
          WHERE id = :id'
     );
     $stmt->execute($params);
@@ -802,14 +1006,19 @@ function save_item(array $data, ?int $id = null): int
         'description' => trim((string) ($data['description'] ?? '')),
         'url' => trim((string) ($data['url'] ?? '')),
         'image_url' => trim((string) ($data['image_url'] ?? '')),
+        'assessment_status' => array_key_exists((string) ($data['assessment_status'] ?? ''), assessment_statuses()) ? $data['assessment_status'] : 'listed',
+        'assessment_summary' => trim((string) ($data['assessment_summary'] ?? '')),
+        'assessment_strengths' => trim((string) ($data['assessment_strengths'] ?? '')),
+        'assessment_caveats' => trim((string) ($data['assessment_caveats'] ?? '')),
+        'reviewed_at' => trim((string) ($data['reviewed_at'] ?? '')) ?: null,
         'featured' => bool_from_input($data['featured'] ?? 0),
         'popular' => bool_from_input($data['popular'] ?? 0),
     ];
 
     if ($id === null) {
         $stmt = db()->prepare(
-            'INSERT INTO items (brand_id, name, slug, category_id, description, url, image_url, featured, popular)
-             VALUES (:brand_id, :name, :slug, :category_id, :description, :url, :image_url, :featured, :popular)'
+            'INSERT INTO items (brand_id, name, slug, category_id, description, url, image_url, assessment_status, assessment_summary, assessment_strengths, assessment_caveats, reviewed_at, featured, popular)
+             VALUES (:brand_id, :name, :slug, :category_id, :description, :url, :image_url, :assessment_status, :assessment_summary, :assessment_strengths, :assessment_caveats, :reviewed_at, :featured, :popular)'
         );
         $stmt->execute($params);
         return (int) db()->lastInsertId();
@@ -820,6 +1029,8 @@ function save_item(array $data, ?int $id = null): int
         'UPDATE items
          SET brand_id = :brand_id, name = :name, slug = :slug, category_id = :category_id,
              description = :description, url = :url, image_url = :image_url, featured = :featured, popular = :popular,
+             assessment_status = :assessment_status, assessment_summary = :assessment_summary,
+             assessment_strengths = :assessment_strengths, assessment_caveats = :assessment_caveats, reviewed_at = :reviewed_at,
              updated_at = CURRENT_TIMESTAMP
          WHERE id = :id'
     );

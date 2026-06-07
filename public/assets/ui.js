@@ -73,4 +73,21 @@
             button.setAttribute('aria-pressed', visible ? 'false' : 'true');
         });
     });
+
+    document.querySelectorAll('[data-filter-dialog]').forEach((dialog) => {
+        const form = dialog.closest('form');
+        form?.querySelector('[data-filter-open]')?.addEventListener('click', () => {
+            if (window.matchMedia('(max-width: 680px)').matches) {
+                dialog.showModal();
+                return;
+            }
+            dialog.open ? dialog.close() : dialog.show();
+        });
+        dialog.querySelector('[data-filter-close]')?.addEventListener('click', () => dialog.close());
+        dialog.addEventListener('click', (event) => {
+            if (event.target === dialog) {
+                dialog.close();
+            }
+        });
+    });
 }());

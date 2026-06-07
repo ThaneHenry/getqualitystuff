@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 240" role="img" aria-labelledby="title desc">
+  <title id="title">Get Quality Stuff award placeholder</title>
+  <desc id="desc">An abstract circular Get Quality Stuff award placeholder.</desc>
+  <circle cx="120" cy="120" r="112" fill="#f7f9f7"/>
+  <circle cx="120" cy="120" r="94" fill="none" stroke="#202020" stroke-width="8"/>
+  <circle cx="99" cy="120" r="49" fill="#ff3f66"/>
+  <circle cx="141" cy="120" r="49" fill="#2b7651"/>
+  <circle cx="120" cy="120" r="31" fill="#f7f9f7"/>
+</svg>

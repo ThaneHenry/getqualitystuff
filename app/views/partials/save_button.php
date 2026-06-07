@@ -12,8 +12,8 @@ $returnPath = current_request_path();
     <input type="hidden" name="entity_id" value="<?= e($entityId) ?>">
     <input type="hidden" name="saved" value="<?= $isSaved ? '0' : '1' ?>">
     <input type="hidden" name="redirect" value="<?= e($returnPath) ?>">
-    <button type="submit" class="button--quiet"><?= $isSaved ? 'Saved' : 'Save' ?></button>
+    <button type="submit" class="button--quiet"><?= icon_markup($isSaved ? 'saved' : 'save') ?> <?= $isSaved ? 'Saved' : 'Save' ?></button>
 </form>
 <?php else: ?>
-<a class="button button--quiet" href="/account?redirect=<?= e(urlencode($returnPath)) ?>">Save</a>
+<a class="button button--quiet" href="/account?redirect=<?= e(urlencode($returnPath)) ?>"><?= icon_markup('save') ?> Save</a>
 <?php endif; ?>

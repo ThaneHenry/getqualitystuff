@@ -2,6 +2,7 @@
 /** @var array|null $item */
 /** @var array $brands */
 /** @var array $scores */
+/** @var string $assessmentSources */
 $isEdit = !empty($item);
 ?>
 <section class="admin-header">
@@ -33,6 +34,15 @@ $isEdit = !empty($item);
             <span class="muted">Uses the saved item URL.</span>
         </div>
     <?php endif; ?>
+    <fieldset class="assessment-editor">
+        <legend>Public investigative assessment</legend>
+        <label>Status <select name="assessment_status"><?php foreach (assessment_statuses() as $value => $label): ?><option value="<?= e($value) ?>" <?= ($item['assessment_status'] ?? 'listed') === $value ? 'selected' : '' ?>><?= e($label) ?></option><?php endforeach; ?></select></label>
+        <label>Assessment summary <textarea name="assessment_summary" rows="4"><?= e($item['assessment_summary'] ?? '') ?></textarea></label>
+        <label>Reasons to consider, one per line <textarea name="assessment_strengths" rows="4"><?= e($item['assessment_strengths'] ?? '') ?></textarea></label>
+        <label>Caveats, one per line <textarea name="assessment_caveats" rows="4"><?= e($item['assessment_caveats'] ?? '') ?></textarea></label>
+        <label>Sources, one per line as Label | URL <textarea name="assessment_sources" rows="4"><?= e($assessmentSources ?? '') ?></textarea></label>
+        <label>Reviewed date <input type="date" name="reviewed_at" value="<?= e(isset($item['reviewed_at']) ? substr((string) $item['reviewed_at'], 0, 10) : '') ?>"></label>
+    </fieldset>
     <label class="checkbox-label"><input type="checkbox" name="featured" value="1" <?= !empty($item['featured']) ? 'checked' : '' ?>> Featured</label>
     <label class="checkbox-label"><input type="checkbox" name="popular" value="1" <?= !empty($item['popular']) ? 'checked' : '' ?>> Popular</label>
 

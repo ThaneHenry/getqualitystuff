@@ -2,6 +2,7 @@
 /** @var array $results */
 /** @var array $categories */
 /** @var array $filters */
+/** @var array $filterOptions */
 $isSearchPage = $isSearchPage ?? false;
 $hasSearch = $isSearchPage && trim((string) ($filters['q'] ?? '')) !== '';
 $resultCountLabel = $hasSearch
@@ -62,12 +63,15 @@ $resultCountLabel = $hasSearch
                         <?php if ((int) $result['item_count'] > 0): ?>
                             <span><?= e((int) $result['item_count']) ?> <?= (int) $result['item_count'] === 1 ? 'item' : 'items' ?></span>
                         <?php endif; ?>
-                        <?php if ($result['average_score'] !== null): ?><span><?= e(score_label((float) $result['average_score'])) ?> score</span><?php endif; ?>
+                        <span class="assessment-status assessment-status--<?= e($result['assessment_status'] ?? 'listed') ?>"><?= e(assessment_status_label($result['assessment_status'] ?? 'listed')) ?></span>
+                        <?php if (!empty($result['reviewed_at'])): ?><span>Reviewed <?= e(date('M Y', strtotime($result['reviewed_at']))) ?></span><?php endif; ?>
                     </div>
                     <h2><?= e($result['name']) ?></h2>
-                    <p><?= e($result['description'] ?: 'Brand details are being reviewed.') ?></p>
+                    <?php $strengths = editorial_lines($result['assessment_strengths'] ?? ''); ?>
+                    <p><?= e($strengths[0] ?? ($result['assessment_summary'] ?: assessment_status_message($result['assessment_status'] ?? 'listed'))) ?></p>
                 </div>
             </a>
+            <div class="listing-card__actions"><?php $entityType = 'brand'; $entityId = (int) $result['id']; $isSaved = isset($savedEntryKeys['brand:' . $entityId]); require __DIR__ . '/partials/save_button.php'; ?></div>
         </article>
     <?php endforeach; ?>
     </div>

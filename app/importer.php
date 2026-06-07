@@ -174,6 +174,7 @@ function upsert_brand_from_csv(array $data): int
     $stmt->execute(['name' => $name]);
     $existing = $stmt->fetchColumn();
 
+    $existingBrand = $existing ? find_brand_by_id((int) $existing) : null;
     return save_brand([
         'name' => $name,
         'category' => $data['category'] ?? '',
@@ -184,6 +185,11 @@ function upsert_brand_from_csv(array $data): int
         'manufacturing_location' => $data['manufacturing_location'] ?? '',
         'warranty' => $data['warranty'] ?? '',
         'notes' => $data['notes'] ?? '',
+        'assessment_status' => $data['assessment_status'] ?? ($existingBrand['assessment_status'] ?? 'listed'),
+        'assessment_summary' => $data['assessment_summary'] ?? ($existingBrand['assessment_summary'] ?? ''),
+        'assessment_strengths' => $data['assessment_strengths'] ?? ($existingBrand['assessment_strengths'] ?? ''),
+        'assessment_caveats' => $data['assessment_caveats'] ?? ($existingBrand['assessment_caveats'] ?? ''),
+        'reviewed_at' => $data['reviewed_at'] ?? ($existingBrand['reviewed_at'] ?? ''),
         'featured' => $data['featured'] ?? 0,
         'popular' => $data['popular'] ?? 0,
     ], $existing ? (int) $existing : null);
@@ -220,6 +226,7 @@ function upsert_item_from_csv(array $data, int $brandId): int
     $stmt->execute(['brand_id' => $brandId, 'name' => $name]);
     $existing = $stmt->fetchColumn();
 
+    $existingItem = $existing ? find_item_by_id((int) $existing) : null;
     return save_item([
         'brand_id' => $brandId,
         'name' => $name,
@@ -227,6 +234,11 @@ function upsert_item_from_csv(array $data, int $brandId): int
         'description' => $data['description'] ?? '',
         'url' => $data['url'] ?? '',
         'image_url' => $data['image_url'] ?? '',
+        'assessment_status' => $data['assessment_status'] ?? ($existingItem['assessment_status'] ?? 'listed'),
+        'assessment_summary' => $data['assessment_summary'] ?? ($existingItem['assessment_summary'] ?? ''),
+        'assessment_strengths' => $data['assessment_strengths'] ?? ($existingItem['assessment_strengths'] ?? ''),
+        'assessment_caveats' => $data['assessment_caveats'] ?? ($existingItem['assessment_caveats'] ?? ''),
+        'reviewed_at' => $data['reviewed_at'] ?? ($existingItem['reviewed_at'] ?? ''),
         'featured' => $data['featured'] ?? 0,
         'popular' => $data['popular'] ?? 0,
     ], $existing ? (int) $existing : null);

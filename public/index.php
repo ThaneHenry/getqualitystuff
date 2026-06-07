@@ -33,7 +33,7 @@ function route(string $path, string $method): void
             'featuredItems' => featured_items(3),
             'searchSuggestions' => search_suggestions(),
             'forYouBrands' => $homeUser ? personalized_brands((int) $homeUser['id'], 3) : [],
-            'categories' => all_categories(),
+            'categories' => public_categories(),
             'filters' => [
                 'q' => $_GET['q'] ?? '',
                 'category' => $_GET['category'] ?? '',
@@ -48,11 +48,16 @@ function route(string $path, string $method): void
         render('brands_index', [
             'title' => $hasSearch ? 'Results' : 'Search',
             'results' => directory_results($_GET),
-            'categories' => all_categories(),
+            'categories' => public_categories(),
+            'filterOptions' => directory_filter_options(),
             'filters' => [
                 'q' => $_GET['q'] ?? '',
                 'category' => $_GET['category'] ?? '',
                 'mode' => $_GET['mode'] ?? 'all',
+                'status' => $_GET['status'] ?? '',
+                'company' => $_GET['company'] ?? '',
+                'manufacturing' => $_GET['manufacturing'] ?? '',
+                'warranty' => $_GET['warranty'] ?? '',
             ],
             'isSearchPage' => true,
         ]);
@@ -63,10 +68,15 @@ function route(string $path, string $method): void
         render('brands_index', [
             'title' => 'Brands',
             'results' => directory_results($_GET),
-            'categories' => all_categories(),
+            'categories' => public_categories(),
+            'filterOptions' => directory_filter_options(),
             'filters' => [
                 'category' => $_GET['category'] ?? '',
                 'mode' => $_GET['mode'] ?? 'all',
+                'status' => $_GET['status'] ?? '',
+                'company' => $_GET['company'] ?? '',
+                'manufacturing' => $_GET['manufacturing'] ?? '',
+                'warranty' => $_GET['warranty'] ?? '',
             ],
             'isSearchPage' => false,
         ]);
@@ -77,18 +87,23 @@ function route(string $path, string $method): void
         render('stores_index', [
             'title' => 'Stores',
             'stores' => filter_directory_entries(list_stores(), $_GET),
-            'categories' => all_categories(),
-            'filters' => ['category' => $_GET['category'] ?? '', 'mode' => $_GET['mode'] ?? 'all'],
+            'categories' => public_categories(),
+            'filterOptions' => directory_filter_options(),
+            'filters' => array_intersect_key($_GET, array_flip(['category', 'mode', 'status', 'company', 'manufacturing', 'warranty'])),
         ]);
         return;
     }
 
     if ($path === '/items') {
+        if (!site_capabilities()['items']) {
+            redirect('/brands');
+        }
         render('items_index', [
             'title' => 'Items',
             'items' => filter_directory_entries(list_items(), $_GET),
-            'categories' => all_categories(),
-            'filters' => ['category' => $_GET['category'] ?? '', 'mode' => $_GET['mode'] ?? 'all'],
+            'categories' => public_categories(),
+            'filterOptions' => directory_filter_options(),
+            'filters' => array_intersect_key($_GET, array_flip(['category', 'mode', 'status', 'company', 'manufacturing', 'warranty'])),
         ]);
         return;
     }
@@ -108,11 +123,57 @@ function route(string $path, string $method): void
         return;
     }
 
+    if ($path === '/awards') {
+        render('awards', [
+            'title' => 'Awards',
+            'awards' => all_awards(),
+        ]);
+        return;
+    }
+
+    if ($path === '/feedback' && $method === 'POST') {
+        verify_csrf();
+        try {
+            submit_public_feedback($_POST);
+            flash('Thank you. Your message has been added for review.');
+        } catch (InvalidArgumentException $e) {
+            flash($e->getMessage());
+        }
+        redirect(safe_redirect_path($_POST['redirect'] ?? null, '/'));
+    }
+
     if ($path === '/about/brand') {
         render('about_brand', [
             'title' => 'Brand guide',
         ]);
         return;
+    }
+
+    if ($path === '/auth/google') {
+        try {
+            redirect(google_auth_url(safe_redirect_path($_GET['redirect'] ?? null, '/account')));
+        } catch (RuntimeException $e) {
+            flash($e->getMessage());
+            redirect('/account?redirect=' . urlencode(safe_redirect_path($_GET['redirect'] ?? null, '/account')));
+        }
+    }
+
+    if ($path === '/auth/google/callback') {
+        $redirect = google_auth_redirect();
+        if (isset($_GET['error'])) {
+            unset($_SESSION['google_oauth']);
+            flash('Google sign-in was cancelled.');
+            redirect('/account?redirect=' . urlencode($redirect));
+        }
+        try {
+            $userId = complete_google_auth((string) ($_GET['code'] ?? ''), (string) ($_GET['state'] ?? ''));
+            login_user_id($userId);
+            flash('You are signed in with Google.');
+            redirect($redirect);
+        } catch (RuntimeException $e) {
+            flash($e->getMessage());
+            redirect('/account?redirect=' . urlencode($redirect));
+        }
     }
 
     if ($path === '/register') {
@@ -273,6 +334,8 @@ function route(string $path, string $method): void
             'title' => $brand['name'],
             'brand' => $brand,
             'scores' => entity_scores('brand', (int) $brand['id']),
+            'sources' => assessment_sources('brand', (int) $brand['id']),
+            'awards' => brand_awards((int) $brand['id']),
             'items' => brand_items((int) $brand['id']),
             'isSaved' => $viewer ? is_entry_saved((int) $viewer['id'], 'brand', (int) $brand['id']) : false,
         ]);
@@ -292,6 +355,7 @@ function route(string $path, string $method): void
             'title' => $item['name'],
             'item' => $item,
             'scores' => entity_scores('item', (int) $item['id']),
+            'sources' => assessment_sources('item', (int) $item['id']),
             'isSaved' => $viewer ? is_entry_saved((int) $viewer['id'], 'item', (int) $item['id']) : false,
         ]);
         return;
@@ -380,6 +444,7 @@ function route_admin(string $path, string $method): void
             'brands' => list_brands(),
             'items' => list_items(),
             'logs' => $logs,
+            'feedbackEntries' => public_feedback_entries(),
         ]);
         return;
     }
@@ -399,6 +464,13 @@ function route_admin(string $path, string $method): void
         }
         render('admin/import', $data);
         return;
+    }
+
+    if (preg_match('#^/admin/feedback/(\d+)/status$#', $path, $matches) && $method === 'POST') {
+        verify_csrf();
+        update_public_feedback_status((int) $matches[1], (string) ($_POST['status'] ?? 'new'));
+        flash('Feedback status updated.');
+        redirect('/admin#feedback');
     }
 
     if ($path === '/admin/brands/new') {
@@ -426,6 +498,7 @@ function route_admin(string $path, string $method): void
         }
         $deleteBrandScores = db()->prepare("DELETE FROM scores WHERE entity_type = 'brand' AND entity_id = :id");
         $deleteBrandScores->execute(['id' => (int) $matches[1]]);
+        db()->prepare("DELETE FROM assessment_sources WHERE entity_type = 'brand' AND entity_id = :id")->execute(['id' => (int) $matches[1]]);
         $stmt = db()->prepare('DELETE FROM brands WHERE id = :id');
         $stmt->execute(['id' => (int) $matches[1]]);
         flash('Brand deleted.');
@@ -451,6 +524,7 @@ function route_admin(string $path, string $method): void
         verify_csrf();
         $deleteScores = db()->prepare("DELETE FROM scores WHERE entity_type = 'item' AND entity_id = :id");
         $deleteScores->execute(['id' => (int) $matches[1]]);
+        db()->prepare("DELETE FROM assessment_sources WHERE entity_type = 'item' AND entity_id = :id")->execute(['id' => (int) $matches[1]]);
         $stmt = db()->prepare('DELETE FROM items WHERE id = :id');
         $stmt->execute(['id' => (int) $matches[1]]);
         flash('Item deleted.');
@@ -471,6 +545,8 @@ function handle_brand_form(string $method, ?int $id): void
         verify_csrf();
         $brandId = save_brand($_POST, $id);
         save_scores('brand', $brandId, $_POST['scores'] ?? []);
+        save_assessment_sources('brand', $brandId, (string) ($_POST['assessment_sources'] ?? ''));
+        save_brand_awards($brandId, is_array($_POST['award_ids'] ?? null) ? $_POST['award_ids'] : []);
         flash('Brand saved.');
         redirect('/admin');
     }
@@ -487,6 +563,9 @@ function handle_brand_form(string $method, ?int $id): void
         'brand' => $brand,
         'categoryName' => $categoryName,
         'scores' => $id === null ? blank_scores() : entity_scores('brand', $id),
+        'assessmentSources' => $id === null ? '' : assessment_sources_editor_value('brand', $id),
+        'awards' => all_awards(),
+        'brandAwardIds' => $id === null ? [] : array_map(static fn (array $award): int => (int) $award['id'], brand_awards($id)),
     ]);
 }
 
@@ -521,6 +600,7 @@ function handle_item_form(string $method, ?int $id): void
         verify_csrf();
         $itemId = save_item($_POST, $id);
         save_scores('item', $itemId, $_POST['scores'] ?? []);
+        save_assessment_sources('item', $itemId, (string) ($_POST['assessment_sources'] ?? ''));
         flash('Item saved.');
         redirect('/admin');
     }
@@ -538,6 +618,7 @@ function handle_item_form(string $method, ?int $id): void
         'brands' => list_brands(),
         'categoryName' => $categoryName,
         'scores' => $id === null ? blank_scores() : entity_scores('item', $id),
+        'assessmentSources' => $id === null ? '' : assessment_sources_editor_value('item', $id),
     ]);
 }
 

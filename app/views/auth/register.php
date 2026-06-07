@@ -1,6 +1,7 @@
 <section class="auth-panel">
     <p class="eyebrow">Account</p>
-    <h1>Create account</h1>
+    <h1>Create your account</h1>
+    <p class="auth-panel__intro">Save discoveries and make Get Quality Stuff more useful to you.</p>
     <?php if (!empty($errors)): ?>
         <div class="error">
             <?php foreach ($errors as $error): ?>
@@ -8,6 +9,8 @@
             <?php endforeach; ?>
         </div>
     <?php endif; ?>
+    <?php require __DIR__ . '/google_button.php'; ?>
+    <div class="auth-divider"><span>or use email</span></div>
     <form method="post" action="/register" class="form-stack">
         <input type="hidden" name="csrf_token" value="<?= e(csrf_token()) ?>">
         <input type="hidden" name="redirect" value="<?= e($redirect ?? '/account') ?>">

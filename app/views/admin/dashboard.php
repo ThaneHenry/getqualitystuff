@@ -2,6 +2,7 @@
 /** @var array $brands */
 /** @var array $items */
 /** @var array $logs */
+/** @var array $feedbackEntries */
 ?>
 <section class="admin-header">
     <div>
@@ -13,6 +14,21 @@
         <a class="button" href="/admin/items/new">New item</a>
         <a class="button button--quiet" href="/admin/import">Import CSV</a>
     </div>
+</section>
+
+<section class="admin-panel" id="feedback">
+    <h2>Public feedback</h2>
+    <?php foreach ($feedbackEntries as $entry): ?>
+        <article class="feedback-admin-entry">
+            <div><strong><?= e($entry['type'] === 'suggest_brand' ? 'Brand suggestion' : 'Outdated information') ?></strong><?php if ($entry['entity_name']): ?> · <?= e($entry['entity_name']) ?><?php endif; ?><p><?= nl2br(e($entry['message'])) ?></p><small><?= e($entry['contact_email'] ?: 'No contact email') ?> · <?= e($entry['created_at']) ?></small></div>
+            <form method="post" action="/admin/feedback/<?= e((string) $entry['id']) ?>/status">
+                <input type="hidden" name="csrf_token" value="<?= e(csrf_token()) ?>">
+                <select name="status"><?php foreach (['new' => 'New', 'reviewing' => 'Reviewing', 'resolved' => 'Resolved'] as $value => $label): ?><option value="<?= e($value) ?>" <?= $entry['status'] === $value ? 'selected' : '' ?>><?= e($label) ?></option><?php endforeach; ?></select>
+                <button type="submit">Update</button>
+            </form>
+        </article>
+    <?php endforeach; ?>
+    <?php if (!$feedbackEntries): ?><p class="muted">No public feedback yet.</p><?php endif; ?>
 </section>
 
 <section class="admin-columns">

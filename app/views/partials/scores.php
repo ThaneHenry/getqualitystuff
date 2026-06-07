@@ -1,3 +1,4 @@
+<?php if (array_filter($scores, static fn (array $score): bool => $score['score'] !== null)): ?>
 <section class="score-board">
     <h2>Score breakdown</h2>
     <div class="score-list">
@@ -10,3 +11,4 @@
         <?php endforeach; ?>
     </div>
 </section>
+<?php endif; ?>

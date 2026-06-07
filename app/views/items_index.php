@@ -2,6 +2,7 @@
 /** @var array $items */
 /** @var array $categories */
 /** @var array $filters */
+/** @var array $filterOptions */
 ?>
 <section class="page-header">
     <div>
@@ -30,12 +31,13 @@
                         <div class="card-meta">
                             <?php if ($item['category_name']): ?><span><?= e(category_label($item['category_name'])) ?></span><?php endif; ?>
                             <span><?= e($item['brand_name']) ?></span>
-                            <?php if ($item['average_score'] !== null): ?><span><?= e(score_label((float) $item['average_score'])) ?> score</span><?php endif; ?>
+                            <span class="assessment-status assessment-status--<?= e($item['assessment_status'] ?? 'listed') ?>"><?= e(assessment_status_label($item['assessment_status'] ?? 'listed')) ?></span>
                         </div>
                         <h2><?= e($item['name']) ?></h2>
-                        <p><?= e($item['description'] ?: 'Item details are being reviewed.') ?></p>
+                        <p><?= e($item['assessment_summary'] ?: assessment_status_message($item['assessment_status'] ?? 'listed')) ?></p>
                     </div>
                 </a>
+                <div class="listing-card__actions"><?php $entityType = 'item'; $entityId = (int) $item['id']; $isSaved = isset($savedEntryKeys['item:' . $entityId]); require __DIR__ . '/partials/save_button.php'; ?></div>
             </article>
         <?php endforeach; ?>
         <?php if (!$items): ?>

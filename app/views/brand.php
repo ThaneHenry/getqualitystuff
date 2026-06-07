@@ -14,9 +14,9 @@
     <div>
         <p class="eyebrow"><?= e(category_label($brand['category_name'] ?: 'Brand')) ?></p>
         <h1><?= e($brand['name']) ?></h1>
-        <p><?= e($brand['description']) ?></p>
+        <p><?= e($brand['assessment_summary'] ?: assessment_status_message($brand['assessment_status'])) ?></p>
         <div class="detail-actions">
-            <?php if ($brand['url']): ?><a class="primary-link" href="<?= e($brand['url']) ?>" rel="noopener" target="_blank">Visit website</a><?php endif; ?>
+            <?php if ($brand['url']): ?><a class="primary-link" href="<?= e($brand['url']) ?>" rel="noopener" target="_blank">Visit website <?= icon_markup('external') ?></a><?php endif; ?>
             <?php $entityType = 'brand'; $entityId = (int) $brand['id']; require __DIR__ . '/partials/save_button.php'; ?>
         </div>
     </div>
@@ -38,13 +38,26 @@
     <?php if ($brand['warranty']): ?>
         <div><span>Warranty</span><strong><?= e($brand['warranty']) ?></strong></div>
     <?php endif; ?>
-    <?php if ($brand['notes'] && $brand['notes'] !== $brand['description']): ?>
-        <div><span>Notes</span><strong><?= e($brand['notes']) ?></strong></div>
-    <?php endif; ?>
 </section>
 
+<?php $entity = $brand; require __DIR__ . '/partials/assessment.php'; ?>
+<?php if ($awards): ?>
+<section class="section-block brand-awards">
+    <p class="eyebrow">GQS awards</p>
+    <h2>Recognised strengths</h2>
+    <div class="brand-awards__grid">
+        <?php foreach ($awards as $award): ?>
+            <a class="brand-award" href="/awards#<?= e($award['slug']) ?>">
+                <img src="/assets/awards/placeholder.svg" alt="">
+                <span><strong><?= e($award['name']) ?></strong><small><?= e($award['description']) ?></small></span>
+            </a>
+        <?php endforeach; ?>
+    </div>
+</section>
+<?php endif; ?>
 <?php require __DIR__ . '/partials/scores.php'; ?>
 
+<?php if ($items): ?>
 <section class="section-block">
     <h2>Items from <?= e($brand['name']) ?></h2>
     <div class="directory-grid directory-grid--compact">
@@ -63,3 +76,6 @@
         <?php if (!$items): ?><p class="muted">No items have been added for this brand yet.</p><?php endif; ?>
     </div>
 </section>
+<?php endif; ?>
+
+<?php $feedbackType = 'outdated_information'; $feedbackEntityType = 'brand'; $feedbackEntityId = (int) $brand['id']; require __DIR__ . '/partials/feedback_form.php'; ?>

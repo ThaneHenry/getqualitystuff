@@ -112,6 +112,13 @@ type,name,brand_name,category,description,url,image_url,featured,sustainability_
 ```
 
 Use `type=brand` for brand rows and `type=item` for item rows. `brand_name` is required for item rows.
+Assessment fields are optional and existing imports remain compatible:
+
+```text
+assessment_status,assessment_summary,assessment_strengths,assessment_caveats,reviewed_at
+```
+
+Use `listed`, `investigating`, `assessed`, or `needs_update` for `assessment_status`. Separate multiple strengths or caveats with line breaks.
 
 The importer also accepts the current brand export format directly:
 
@@ -151,6 +158,29 @@ GET_QUALITY_STUFF_MAIL_FROM=hello@getqualitystuff.com
 `GET_QUALITY_STUFF_MAIL_TRANSPORT=mail` sends through PHP's configured mail service. The default `log` transport writes email previews to `storage/mail.log`, which is useful during local development.
 
 `GET_QUALITY_STUFF_DATABASE_PATH` can optionally point the app at a different SQLite database for testing or deployment.
+
+## Google Sign-In
+
+Google sign-in uses a server-side OpenID Connect authorization-code flow. Create a Web application OAuth client in Google Cloud, then add this authorized redirect URI:
+
+```text
+https://getqualitystuff.com/auth/google/callback
+```
+
+For local development, also add:
+
+```text
+http://127.0.0.1:8000/auth/google/callback
+```
+
+Configure the credentials in the hosting environment:
+
+```sh
+GET_QUALITY_STUFF_GOOGLE_CLIENT_ID=your-client-id
+GET_QUALITY_STUFF_GOOGLE_CLIENT_SECRET=your-client-secret
+```
+
+The app requests only `openid`, `email`, and `profile`. A verified Google email is used to create a new account or securely link an existing account with the same email.
 
 ## DreamHost Notes
 

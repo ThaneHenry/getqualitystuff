@@ -95,6 +95,170 @@ function login_user_id(int $userId): void
     $_SESSION['user_id'] = $userId;
 }
 
+function google_auth_enabled(): bool
+{
+    $config = config();
+    return $config['google_client_id'] !== '' && $config['google_client_secret'] !== '';
+}
+
+function google_auth_url(string $redirect = '/account'): string
+{
+    if (!google_auth_enabled()) {
+        throw new RuntimeException('Google sign-in is not configured yet.');
+    }
+
+    $state = bin2hex(random_bytes(24));
+    $codeVerifier = oauth_base64url(random_bytes(48));
+    $_SESSION['google_oauth'] = [
+        'state' => $state,
+        'code_verifier' => $codeVerifier,
+        'redirect' => safe_redirect_path($redirect, '/account'),
+        'created_at' => time(),
+    ];
+
+    return 'https://accounts.google.com/o/oauth2/v2/auth?' . http_build_query([
+        'client_id' => config()['google_client_id'],
+        'redirect_uri' => absolute_url('/auth/google/callback'),
+        'response_type' => 'code',
+        'scope' => 'openid email profile',
+        'state' => $state,
+        'code_challenge' => oauth_base64url(hash('sha256', $codeVerifier, true)),
+        'code_challenge_method' => 'S256',
+        'prompt' => 'select_account',
+    ], '', '&', PHP_QUERY_RFC3986);
+}
+
+function complete_google_auth(string $code, string $state): int
+{
+    $request = $_SESSION['google_oauth'] ?? null;
+    unset($_SESSION['google_oauth']);
+
+    if ($code === ''
+        || !is_array($request)
+        || !isset($request['state'], $request['code_verifier'], $request['created_at'])
+        || !hash_equals((string) $request['state'], $state)
+        || (int) $request['created_at'] < time() - 600
+    ) {
+        throw new RuntimeException('Google sign-in expired or could not be verified. Please try again.');
+    }
+
+    $tokens = oauth_json_request('https://oauth2.googleapis.com/token', [
+        'code' => $code,
+        'client_id' => config()['google_client_id'],
+        'client_secret' => config()['google_client_secret'],
+        'redirect_uri' => absolute_url('/auth/google/callback'),
+        'grant_type' => 'authorization_code',
+        'code_verifier' => (string) $request['code_verifier'],
+    ]);
+    $accessToken = (string) ($tokens['access_token'] ?? '');
+    if ($accessToken === '') {
+        throw new RuntimeException('Google did not return a usable sign-in token.');
+    }
+
+    $profile = oauth_json_request('https://openidconnect.googleapis.com/v1/userinfo', null, [
+        'Authorization: Bearer ' . $accessToken,
+    ]);
+    $subject = trim((string) ($profile['sub'] ?? ''));
+    $email = trim((string) ($profile['email'] ?? ''));
+    $emailVerified = filter_var($profile['email_verified'] ?? false, FILTER_VALIDATE_BOOLEAN);
+
+    if ($subject === '' || !filter_var($email, FILTER_VALIDATE_EMAIL) || !$emailVerified) {
+        throw new RuntimeException('Google did not provide a verified email address.');
+    }
+
+    return find_or_create_google_user($subject, $email);
+}
+
+function create_google_user(string $email): int
+{
+    $stmt = db()->prepare(
+        'INSERT INTO users (email, password_hash, role, email_verified_at)
+         VALUES (:email, :password_hash, :role, CURRENT_TIMESTAMP)'
+    );
+    $stmt->execute([
+        'email' => $email,
+        'password_hash' => password_hash(bin2hex(random_bytes(32)), PASSWORD_DEFAULT),
+        'role' => 'member',
+    ]);
+    return (int) db()->lastInsertId();
+}
+
+function find_or_create_google_user(string $subject, string $email): int
+{
+    $identity = db()->prepare(
+        "SELECT user_id FROM user_identities WHERE provider = 'google' AND provider_subject = :subject LIMIT 1"
+    );
+    $identity->execute(['subject' => $subject]);
+    $userId = $identity->fetchColumn();
+
+    if (!$userId) {
+        $user = find_user_by_email($email);
+        $userId = $user ? (int) $user['id'] : create_google_user($email);
+        $link = db()->prepare(
+            "INSERT INTO user_identities (user_id, provider, provider_subject, email)
+             VALUES (:user_id, 'google', :subject, :email)
+             ON CONFLICT(user_id, provider) DO UPDATE SET
+                provider_subject = excluded.provider_subject,
+                email = excluded.email,
+                updated_at = CURRENT_TIMESTAMP"
+        );
+        $link->execute(['user_id' => $userId, 'subject' => $subject, 'email' => $email]);
+    }
+
+    db()->prepare('UPDATE users SET email_verified_at = COALESCE(email_verified_at, CURRENT_TIMESTAMP) WHERE id = :id')
+        ->execute(['id' => $userId]);
+
+    return (int) $userId;
+}
+
+function google_auth_redirect(): string
+{
+    return safe_redirect_path($_SESSION['google_oauth']['redirect'] ?? null, '/account');
+}
+
+function oauth_base64url(string $value): string
+{
+    return rtrim(strtr(base64_encode($value), '+/', '-_'), '=');
+}
+
+function oauth_json_request(string $url, ?array $form = null, array $headers = []): array
+{
+    if (!function_exists('curl_init')) {
+        throw new RuntimeException('Google sign-in requires the PHP cURL extension.');
+    }
+
+    $curl = curl_init($url);
+    if ($curl === false) {
+        throw new RuntimeException('Unable to start the Google sign-in request.');
+    }
+
+    $headers[] = 'Accept: application/json';
+    $options = [
+        CURLOPT_RETURNTRANSFER => true,
+        CURLOPT_TIMEOUT => 10,
+        CURLOPT_HTTPHEADER => $headers,
+    ];
+    if ($form !== null) {
+        $options[CURLOPT_POST] = true;
+        $options[CURLOPT_POSTFIELDS] = http_build_query($form, '', '&', PHP_QUERY_RFC3986);
+        $options[CURLOPT_HTTPHEADER][] = 'Content-Type: application/x-www-form-urlencoded';
+    }
+    curl_setopt_array($curl, $options);
+    $body = curl_exec($curl);
+    $status = (int) curl_getinfo($curl, CURLINFO_RESPONSE_CODE);
+    $error = curl_error($curl);
+
+    if (!is_string($body) || $status < 200 || $status >= 300) {
+        throw new RuntimeException($error !== '' ? 'Google sign-in could not connect.' : 'Google sign-in was not accepted.');
+    }
+
+    $decoded = json_decode($body, true);
+    if (!is_array($decoded)) {
+        throw new RuntimeException('Google returned an unexpected sign-in response.');
+    }
+    return $decoded;
+}
+
 function logout(): void
 {
     $_SESSION = [];

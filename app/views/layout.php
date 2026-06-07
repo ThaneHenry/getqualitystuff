@@ -35,13 +35,13 @@ $globalSearchSuggestions = search_suggestions();
                 <div class="browse-menu__panel">
                     <a href="/brands">Brands</a>
                     <a href="/stores">Stores</a>
-                    <a href="/items">Items</a>
+                    <?php if ($capabilities['items']): ?><a href="/items">Items</a><?php endif; ?>
                 </div>
             </details>
             <div class="nav__links">
                 <a href="/brands">Brands</a>
                 <a href="/stores">Stores</a>
-                <a href="/items">Items</a>
+                <?php if ($capabilities['items']): ?><a href="/items">Items</a><?php endif; ?>
             </div>
         </nav>
         <nav class="nav__utilities" aria-label="Primary">
@@ -72,8 +72,19 @@ $globalSearchSuggestions = search_suggestions();
                         </div>
                     </details>
                 <?php else: ?>
-                    <a class="button button--quiet nav__login" href="/account?redirect=<?= e(urlencode($signedOutRedirect)) ?>">Join or log in</a>
+                    <a class="button button--quiet nav__login" href="/account?redirect=<?= e(urlencode($signedOutRedirect)) ?>"><?= icon_markup('login') ?> Log in</a>
                 <?php endif; ?>
+                <details class="mobile-menu">
+                    <summary aria-label="Open menu">Menu</summary>
+                    <nav class="mobile-menu__panel" aria-label="Mobile">
+                        <a href="/brands">Brands</a>
+                        <a href="/stores">Stores</a>
+                        <?php if ($capabilities['items']): ?><a href="/items">Items</a><?php endif; ?>
+                        <a href="/news">News</a>
+                        <a href="/about">About</a>
+                        <a href="/account"><?= $signedInUser ? 'Account' : 'Log in' ?></a>
+                    </nav>
+                </details>
         </nav>
     </header>
 
@@ -119,11 +130,12 @@ $globalSearchSuggestions = search_suggestions();
         <nav class="site-footer__links" aria-label="Footer">
             <a href="/brands">Brands</a>
             <a href="/stores">Stores</a>
-            <a href="/items">Items</a>
+            <?php if ($capabilities['items']): ?><a href="/items">Items</a><?php endif; ?>
             <a href="/news">News</a>
+            <a href="/awards">Awards</a>
             <a href="/about">About</a>
             <?php if (is_admin()): ?><a href="/admin">Admin</a><?php endif; ?>
-            <?php if ($signedInUser): ?><a href="/account">Account</a><?php else: ?><a href="/account">Join or log in</a><?php endif; ?>
+            <?php if ($signedInUser): ?><a href="/account">Account</a><?php else: ?><a href="/account">Log in</a><?php endif; ?>
         </nav>
         <p class="site-footer__fineprint">&copy; <?= e(date('Y')) ?> <?= e($appName) ?>. <?= e($appDomain) ?>.</p>
     </footer>
