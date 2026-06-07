@@ -387,6 +387,41 @@ function flag_markup(?string $countryCode): string
     return '<span class="flag-chip fi fi-' . e($flagCode) . '" title="' . e($name) . '" aria-label="' . e($name) . '" role="img"></span>';
 }
 
+function location_marker_markup(?string $location, string $label): string
+{
+    $location = strtoupper(trim((string) $location));
+    if ($location === '') {
+        return '';
+    }
+
+    $name = country_name($location);
+    $accessibleName = $label . ': ' . ($name !== '' ? $name : $location);
+    if (in_array($location, ['GLOBAL', 'WORLDWIDE', 'WORLD'], true)) {
+        return '<span class="global-chip" title="' . e($accessibleName) . '" aria-label="' . e($accessibleName) . '" role="img">'
+            . '<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"></circle><path d="M3 12h18M12 3a15 15 0 0 1 0 18M12 3a15 15 0 0 0 0 18"></path></svg>'
+            . '</span>';
+    }
+
+    $flagCode = flag_icon_code($location);
+    if ($flagCode === '') {
+        return '';
+    }
+
+    return '<span class="flag-chip fi fi-' . e($flagCode) . '" title="' . e($accessibleName) . '" aria-label="' . e($accessibleName) . '" role="img"></span>';
+}
+
+function listing_locations_markup(?string $companyLocation, ?string $secondaryLocation, string $secondaryLabel): string
+{
+    $company = location_marker_markup($companyLocation, 'Company location');
+    $secondary = location_marker_markup($secondaryLocation, $secondaryLabel);
+    if ($company === '' && $secondary === '') {
+        return '';
+    }
+
+    $divider = $company !== '' && $secondary !== '' ? '<span class="location-divider" aria-hidden="true"></span>' : '';
+    return '<span class="listing-locations">' . $company . $divider . $secondary . '</span>';
+}
+
 function render(string $template, array $data = []): void
 {
     extract($data, EXTR_SKIP);

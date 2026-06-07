@@ -74,6 +74,7 @@ CREATE TABLE IF NOT EXISTS brands (
     image_url TEXT NOT NULL DEFAULT '',
     company_location TEXT NOT NULL DEFAULT '',
     manufacturing_location TEXT NOT NULL DEFAULT '',
+    delivery_locations TEXT NOT NULL DEFAULT '',
     warranty TEXT NOT NULL DEFAULT '',
     notes TEXT NOT NULL DEFAULT '',
     assessment_status TEXT NOT NULL DEFAULT 'listed' CHECK (assessment_status IN ('listed', 'investigating', 'assessed', 'needs_update')),

@@ -28,6 +28,8 @@
                     </div>
                     <div class="listing-card__body">
                         <div class="card-meta">
+                            <span class="type-tag type-tag--item">Item</span>
+                            <?= listing_locations_markup($item['company_location'], $item['manufacturing_location'], 'Manufacturing location') ?>
                             <?php if ($item['category_name']): ?><span><?= e(category_label($item['category_name'])) ?></span><?php endif; ?>
                             <span><?= e($item['brand_name']) ?></span>
                             <span class="assessment-status assessment-status--<?= e($item['assessment_status'] ?? 'listed') ?>"><?= e(assessment_status_label($item['assessment_status'] ?? 'listed')) ?></span>

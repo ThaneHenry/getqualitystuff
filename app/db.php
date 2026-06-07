@@ -97,6 +97,7 @@ function ensure_brand_columns(PDO $pdo): void
     $needed = [
         'company_location' => "ALTER TABLE brands ADD COLUMN company_location TEXT NOT NULL DEFAULT ''",
         'manufacturing_location' => "ALTER TABLE brands ADD COLUMN manufacturing_location TEXT NOT NULL DEFAULT ''",
+        'delivery_locations' => "ALTER TABLE brands ADD COLUMN delivery_locations TEXT NOT NULL DEFAULT ''",
         'warranty' => "ALTER TABLE brands ADD COLUMN warranty TEXT NOT NULL DEFAULT ''",
         'notes' => "ALTER TABLE brands ADD COLUMN notes TEXT NOT NULL DEFAULT ''",
         'popular' => "ALTER TABLE brands ADD COLUMN popular INTEGER NOT NULL DEFAULT 0",

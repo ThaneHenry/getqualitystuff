@@ -16,6 +16,8 @@ foreach ($featuredBrands as $brand) {
         'image_url' => $brand['image_url'],
         'category_name' => $brand['category_name'],
         'company_location' => $brand['company_location'],
+        'secondary_location' => $brand['manufacturing_location'],
+        'secondary_location_label' => 'Manufacturing location',
         'item_count' => (int) $brand['item_count'],
         'average_score' => $brand['average_score'],
         'brand_name' => '',
@@ -30,6 +32,8 @@ foreach ($featuredStores as $store) {
         'image_url' => $store['image_url'],
         'category_name' => $store['category_name'],
         'company_location' => $store['company_location'],
+        'secondary_location' => $store['delivery_locations'],
+        'secondary_location_label' => 'Delivery locations',
         'item_count' => (int) $store['item_count'],
         'average_score' => $store['average_score'],
         'brand_name' => '',
@@ -43,7 +47,9 @@ foreach ($featuredItems as $item) {
         'description' => $item['assessment_summary'] ?: ($item['description'] ?: '...'),
         'image_url' => $item['image_url'],
         'category_name' => $item['category_name'],
-        'company_location' => '',
+        'company_location' => $item['company_location'],
+        'secondary_location' => $item['manufacturing_location'],
+        'secondary_location_label' => 'Manufacturing location',
         'item_count' => 0,
         'average_score' => $item['average_score'],
         'brand_name' => $item['brand_name'],
@@ -87,6 +93,8 @@ foreach ($featuredItems as $item) {
                     </div>
                     <div class="featured-card__body">
                         <div class="card-meta">
+                            <span class="type-tag type-tag--brand">Brand</span>
+                            <?= listing_locations_markup($brand['company_location'], $brand['manufacturing_location'], 'Manufacturing location') ?>
                             <?php if ($brand['category_name']): ?><span><?= e(category_label($brand['category_name'])) ?></span><?php endif; ?>
                             <?php if ($brand['average_score'] !== null): ?><span><?= e(score_label((float) $brand['average_score'])) ?> score</span><?php endif; ?>
                         </div>
@@ -117,10 +125,10 @@ foreach ($featuredItems as $item) {
                     </div>
                     <div class="featured-card__body">
                         <div class="card-meta">
-                            <span class="type-tag"><?= e($entry['type']) ?></span>
+                            <span class="type-tag type-tag--<?= e(strtolower($entry['type'])) ?>"><?= e($entry['type']) ?></span>
+                            <?= listing_locations_markup($entry['company_location'], $entry['secondary_location'], $entry['secondary_location_label']) ?>
                             <?php if ($entry['category_name']): ?><span><?= e(category_label($entry['category_name'])) ?></span><?php endif; ?>
                             <?php if ($entry['brand_name']): ?><span><?= e($entry['brand_name']) ?></span><?php endif; ?>
-                            <?php if ($entry['company_location']): ?><?= flag_markup($entry['company_location']) ?><?php endif; ?>
                             <?php if ($entry['item_count'] > 0): ?><span><?= e($entry['item_count']) ?> items</span><?php endif; ?>
                             <?php if ($entry['average_score'] !== null): ?><span><?= e(score_label((float) $entry['average_score'])) ?> score</span><?php endif; ?>
                         </div>

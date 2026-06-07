@@ -60,16 +60,24 @@
 <?php if ($items): ?>
 <section class="section-block">
     <h2>Items from <?= e($brand['name']) ?></h2>
-    <div class="directory-grid directory-grid--compact">
+    <div class="directory-grid">
         <?php foreach ($items as $item): ?>
             <article class="listing-card">
-                <a class="listing-card__body" href="/items/<?= e($item['slug']) ?>">
-                    <div class="card-meta">
-                        <?php if ($item['category_name']): ?><span><?= e(category_label($item['category_name'])) ?></span><?php endif; ?>
-                        <span><?= e(score_label($item['average_score'] !== null ? (float) $item['average_score'] : null)) ?></span>
+                <a class="listing-card__link" href="/items/<?= e($item['slug']) ?>">
+                    <div class="listing-card__image">
+                        <span><?= e(substr($item['name'], 0, 1)) ?></span>
+                        <?php if ($item['image_url']): ?><img src="<?= e($item['image_url']) ?>" alt=""><?php endif; ?>
                     </div>
-                    <h3><?= e($item['name']) ?></h3>
-                    <p><?= e($item['description']) ?></p>
+                    <div class="listing-card__body">
+                        <div class="card-meta">
+                            <span class="type-tag type-tag--item">Item</span>
+                            <?= listing_locations_markup($brand['company_location'], $brand['manufacturing_location'], 'Manufacturing location') ?>
+                            <?php if ($item['category_name']): ?><span><?= e(category_label($item['category_name'])) ?></span><?php endif; ?>
+                            <?php if ($item['average_score'] !== null): ?><span><?= e(score_label((float) $item['average_score'])) ?> score</span><?php endif; ?>
+                        </div>
+                        <h3><?= e($item['name']) ?></h3>
+                        <p><?= e($item['description'] ?: '...') ?></p>
+                    </div>
                 </a>
             </article>
         <?php endforeach; ?>

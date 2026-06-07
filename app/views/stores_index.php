@@ -28,8 +28,9 @@
                     </div>
                     <div class="listing-card__body">
                         <div class="card-meta">
+                            <span class="type-tag type-tag--store">Store</span>
+                            <?= listing_locations_markup($store['company_location'], $store['delivery_locations'], 'Delivery locations') ?>
                             <?php if ($store['category_name']): ?><span><?= e(category_label($store['category_name'])) ?></span><?php endif; ?>
-                            <?php if ($store['company_location']): ?><?= flag_markup($store['company_location']) ?><?php endif; ?>
                             <?php if ((int) $store['item_count'] > 0): ?>
                                 <span><?= e((int) $store['item_count']) ?> <?= (int) $store['item_count'] === 1 ? 'item' : 'items' ?></span>
                             <?php endif; ?>

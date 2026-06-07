@@ -644,22 +644,24 @@ button:hover,
     min-width: 0;
 }
 
-.featured-card .card-meta {
+.featured-card .card-meta,
+.listing-card .card-meta {
     align-items: center;
     flex-wrap: nowrap;
     width: 100%;
 }
 
-.featured-card .card-meta > span:not(.type-tag):not(.flag-chip) {
+.featured-card .card-meta > span:not(.type-tag):not(.flag-chip):not(.listing-locations),
+.listing-card .card-meta > span:not(.type-tag):not(.flag-chip):not(.listing-locations) {
     min-width: 0;
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
 }
 
-.featured-card .flag-chip {
+.featured-card .flag-chip,
+.listing-card .flag-chip {
     flex: 0 0 auto;
-    margin-left: auto;
 }
 
 .featured-panel__image {
@@ -823,10 +825,11 @@ button:hover,
 
 .listing-card h2,
 .listing-card h3 {
-    margin: 4px 0;
-    font-family: var(--display-font);
+    margin: 0;
+    font-family: var(--body-font);
     font-weight: 700;
-    font-size: 1.2rem;
+    font-size: 1.05rem;
+    line-height: 1.2;
 }
 
 .listing-card p,
@@ -868,6 +871,24 @@ button:hover,
     font-weight: 750;
 }
 
+.type-tag--brand {
+    border-color: #d9e6df;
+    background: #eef7f2;
+    color: var(--leaf);
+}
+
+.type-tag--store {
+    border-color: #f5c4d5;
+    background: #fff0f5;
+    color: var(--accent-dark);
+}
+
+.type-tag--item {
+    border-color: #d9d0e5;
+    background: #f5f1fa;
+    color: #67437a;
+}
+
 .flag-chip {
     display: inline-block;
     border-radius: 2px;
@@ -875,6 +896,37 @@ button:hover,
     height: 1em;
     line-height: 1;
     width: 1.333em;
+}
+
+.listing-locations {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    flex: 0 0 auto;
+}
+
+.location-divider {
+    width: 1px;
+    height: 14px;
+    background: #cfd4d1;
+}
+
+.global-chip {
+    display: inline-grid;
+    width: 1.1em;
+    height: 1.1em;
+    place-items: center;
+    color: var(--leaf);
+}
+
+.global-chip svg {
+    width: 100%;
+    height: 100%;
+    fill: none;
+    stroke: currentColor;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    stroke-width: 1.75;
 }
 
 .score-pill,

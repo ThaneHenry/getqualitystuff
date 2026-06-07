@@ -29,6 +29,7 @@ $isEdit = !empty($brand);
     <?php endif; ?>
     <label>Company location <input name="company_location" maxlength="80" value="<?= e($brand['company_location'] ?? '') ?>"></label>
     <label>Manufacturing location <input name="manufacturing_location" maxlength="80" value="<?= e($brand['manufacturing_location'] ?? '') ?>"></label>
+    <label>Store delivery locations <input name="delivery_locations" maxlength="80" value="<?= e($brand['delivery_locations'] ?? '') ?>"></label>
     <label>Warranty <input name="warranty" maxlength="160" value="<?= e($brand['warranty'] ?? '') ?>"></label>
     <label>Notes <textarea name="notes" rows="3"><?= e($brand['notes'] ?? '') ?></textarea></label>
     <fieldset class="assessment-editor">

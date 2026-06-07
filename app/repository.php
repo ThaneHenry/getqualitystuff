@@ -323,6 +323,7 @@ function list_stores(?int $limit = null): array
             b.image_url,
             b.company_location,
             b.manufacturing_location,
+            b.delivery_locations,
             b.warranty,
             b.assessment_status,
             b.assessment_summary,
@@ -445,6 +446,7 @@ function directory_results(array $filters): array
             b.image_url,
             b.company_location,
             b.manufacturing_location,
+            b.delivery_locations,
             b.warranty,
             b.assessment_status,
             b.assessment_summary,
@@ -663,6 +665,7 @@ function featured_brands(int $limit = 6): array
             b.image_url,
             b.company_location,
             b.manufacturing_location,
+            b.delivery_locations,
             b.assessment_status,
             b.assessment_summary,
             b.assessment_strengths,
@@ -693,7 +696,7 @@ function featured_stores(int $limit = 6): array
 function featured_items(int $limit = 6): array
 {
     $stmt = db()->prepare(
-        "SELECT i.*, b.name AS brand_name, b.slug AS brand_slug, c.name AS category_name, AVG(s.score) AS average_score
+        "SELECT i.*, b.name AS brand_name, b.slug AS brand_slug, b.company_location, b.manufacturing_location, c.name AS category_name, AVG(s.score) AS average_score
          FROM items i
          INNER JOIN brands b ON b.id = i.brand_id
          LEFT JOIN categories c ON c.id = i.category_id
@@ -942,6 +945,7 @@ function save_brand(array $data, ?int $id = null): int
         'image_url' => trim((string) ($data['image_url'] ?? '')),
         'company_location' => strtoupper(trim((string) ($data['company_location'] ?? ''))),
         'manufacturing_location' => strtoupper(trim((string) ($data['manufacturing_location'] ?? ''))),
+        'delivery_locations' => strtoupper(trim((string) ($data['delivery_locations'] ?? ''))),
         'warranty' => trim((string) ($data['warranty'] ?? '')),
         'notes' => trim((string) ($data['notes'] ?? '')),
         'assessment_status' => array_key_exists((string) ($data['assessment_status'] ?? ''), assessment_statuses()) ? $data['assessment_status'] : 'listed',
@@ -965,8 +969,8 @@ function save_brand(array $data, ?int $id = null): int
 
     if ($id === null) {
         $stmt = db()->prepare(
-            'INSERT INTO brands (name, slug, category_id, description, url, image_url, company_location, manufacturing_location, warranty, notes, assessment_status, assessment_summary, assessment_strengths, assessment_caveats, reviewed_at, featured, popular)
-             VALUES (:name, :slug, :category_id, :description, :url, :image_url, :company_location, :manufacturing_location, :warranty, :notes, :assessment_status, :assessment_summary, :assessment_strengths, :assessment_caveats, :reviewed_at, :featured, :popular)'
+            'INSERT INTO brands (name, slug, category_id, description, url, image_url, company_location, manufacturing_location, delivery_locations, warranty, notes, assessment_status, assessment_summary, assessment_strengths, assessment_caveats, reviewed_at, featured, popular)
+             VALUES (:name, :slug, :category_id, :description, :url, :image_url, :company_location, :manufacturing_location, :delivery_locations, :warranty, :notes, :assessment_status, :assessment_summary, :assessment_strengths, :assessment_caveats, :reviewed_at, :featured, :popular)'
         );
         $stmt->execute($params);
         return (int) db()->lastInsertId();
@@ -977,7 +981,7 @@ function save_brand(array $data, ?int $id = null): int
         'UPDATE brands
          SET name = :name, slug = :slug, category_id = :category_id, description = :description,
              url = :url, image_url = :image_url, company_location = :company_location,
-             manufacturing_location = :manufacturing_location, warranty = :warranty,
+             manufacturing_location = :manufacturing_location, delivery_locations = :delivery_locations, warranty = :warranty,
              notes = :notes, assessment_status = :assessment_status, assessment_summary = :assessment_summary,
              assessment_strengths = :assessment_strengths, assessment_caveats = :assessment_caveats, reviewed_at = :reviewed_at,
              featured = :featured, popular = :popular, updated_at = CURRENT_TIMESTAMP
