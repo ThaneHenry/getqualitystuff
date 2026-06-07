@@ -8,6 +8,7 @@ REMOTE_RETRY_DELAY="${REMOTE_RETRY_DELAY:-30}"
 REMOTE_USER="ikinone"
 REMOTE_HOST="iad1-shared-e1-28.dreamhost.com"
 REMOTE_PORT="22"
+REMOTE_PATH="/home/ikinone/getqualitystuff.com"
 SSH_CONTROL_PATH="${TMPDIR:-/tmp}/getqualitystuff-deploy-$$.sock"
 
 if [[ "$MODE" != "" && "$MODE" != "--check-only" ]]; then
@@ -114,6 +115,42 @@ if ! check_ssh_connection; then
 fi
 
 export DREAMHOST_SSH_COMMAND="ssh -p ${REMOTE_PORT} -S ${SSH_CONTROL_PATH} -o ControlMaster=no -o BatchMode=yes"
+
+echo
+echo "Checking production configuration..."
+if ! ssh \
+    -p "$REMOTE_PORT" \
+    -S "$SSH_CONTROL_PATH" \
+    -o ControlMaster=no \
+    -o BatchMode=yes \
+    "${REMOTE_USER}@${REMOTE_HOST}" \
+    "REMOTE_PATH='$REMOTE_PATH' bash -s" <<'REMOTE_CONFIG_CHECK'
+set -euo pipefail
+
+ENV_FILE="${REMOTE_PATH}/.env.local"
+if [[ ! -r "$ENV_FILE" ]]; then
+    echo "Production configuration missing: ${ENV_FILE}" >&2
+    exit 1
+fi
+
+for name in \
+    GET_QUALITY_STUFF_APP_URL \
+    GET_QUALITY_STUFF_GOOGLE_CLIENT_ID \
+    GET_QUALITY_STUFF_GOOGLE_CLIENT_SECRET
+do
+    if ! grep -Eq "^${name}=.+" "$ENV_FILE"; then
+        echo "Production configuration is missing ${name}." >&2
+        exit 1
+    fi
+done
+
+echo "Production app URL and Google sign-in credentials are configured."
+REMOTE_CONFIG_CHECK
+then
+    echo "Deployment stopped before uploading code." >&2
+    echo "Create ${REMOTE_PATH}/.env.local on DreamHost with production values, then retry." >&2
+    exit 1
+fi
 
 echo
 echo "Backing up the primary production database..."

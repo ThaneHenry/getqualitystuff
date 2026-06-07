@@ -26,6 +26,8 @@ rsync "${RSYNC_FLAGS[@]}" \
   --exclude='.gitignore' \
   --exclude='.DS_Store' \
   --exclude='.dh-diag' \
+  --exclude='.env' \
+  --exclude='.env.*' \
   --exclude='README.md' \
   --exclude='backups/' \
   --exclude='data/' \

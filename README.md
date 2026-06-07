@@ -187,7 +187,10 @@ The app requests only `openid`, `email`, and `profile`. A verified Google email 
 - Upload the project files.
 - Ensure the web root points to `public`.
 - Ensure `storage` is writable by PHP.
-- Set `GET_QUALITY_STUFF_ADMIN_EMAIL` and `GET_QUALITY_STUFF_ADMIN_PASSWORD` in the hosting environment before first run.
+- Create `/home/ikinone/getqualitystuff.com/.env.local` directly on DreamHost with production-only values. The deploy scripts preserve this file and never upload the local `.env.local`.
+- Set `GET_QUALITY_STUFF_APP_URL=https://getqualitystuff.com`, `GET_QUALITY_STUFF_GOOGLE_CLIENT_ID`, and `GET_QUALITY_STUFF_GOOGLE_CLIENT_SECRET` in the production `.env.local`.
+- Set `GET_QUALITY_STUFF_ADMIN_EMAIL` and `GET_QUALITY_STUFF_ADMIN_PASSWORD` there before first run if an initial admin account still needs to be seeded.
+- Register `https://getqualitystuff.com/auth/google/callback` as an authorized Google OAuth redirect URI.
 
 ## Project Reference Files
 

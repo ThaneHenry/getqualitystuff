@@ -2,6 +2,16 @@
 
 declare(strict_types=1);
 
+$localEnvPath = dirname(__DIR__) . '/.env.local';
+if (is_readable($localEnvPath)) {
+    $localEnv = parse_ini_file($localEnvPath, false, INI_SCANNER_RAW) ?: [];
+    foreach ($localEnv as $name => $value) {
+        if (getenv((string) $name) === false && is_string($value)) {
+            putenv($name . '=' . $value);
+        }
+    }
+}
+
 return [
     'app_name' => 'Get Quality Stuff',
     'app_domain' => 'getqualitystuff.com',

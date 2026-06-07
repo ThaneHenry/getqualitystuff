@@ -7,4 +7,5 @@
 !/public/uploads/.gitkeep
 /backups/
 /.env
+/.env.local
 .DS_Store

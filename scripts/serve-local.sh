@@ -10,6 +10,13 @@ PID_FILE="$STORAGE_DIR/.local-server.pid"
 HOST=${HOST:-127.0.0.1}
 PORT=${PORT:-8000}
 
+if [ -f "$ROOT_DIR/.env.local" ]; then
+    set -a
+    # shellcheck disable=SC1091
+    . "$ROOT_DIR/.env.local"
+    set +a
+fi
+
 export GET_QUALITY_STUFF_ADMIN_EMAIL=${GET_QUALITY_STUFF_ADMIN_EMAIL:-local-admin@getqualitystuff.test}
 export GET_QUALITY_STUFF_ADMIN_PASSWORD=${GET_QUALITY_STUFF_ADMIN_PASSWORD:-local-admin-password}
 export GET_QUALITY_STUFF_APP_URL=${GET_QUALITY_STUFF_APP_URL:-http://$HOST:$PORT}
