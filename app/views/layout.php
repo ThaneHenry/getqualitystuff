@@ -2,7 +2,8 @@
 /** @var string $template */
 /** @var string $appName */
 $appDomain = config()['app_domain'] ?? 'getqualitystuff.com';
-$brandLogo = '<img class="brand-logo" src="/assets/gqs-logo-horizontal.png" alt="' . e($appName) . '" width="1013" height="320">';
+$brandLogoHorizontal = '<img class="brand-logo" src="/assets/gqs-logo-hor.png" alt="' . e($appName) . '" width="500" height="133">';
+$brandLogoResponsive = '<picture class="brand-logo-picture"><source media="(max-width: 680px)" srcset="/assets/gqs-logo-vert.png"><img class="brand-logo" src="/assets/gqs-logo-hor.png" alt="' . e($appName) . '" width="500" height="133"></picture>';
 $signedInUser = current_user();
 $signedOutRedirect = safe_redirect_path($_GET['redirect'] ?? current_request_path(), '/');
 $globalSearchSuggestions = search_suggestions();
@@ -25,17 +26,10 @@ $globalSearchSuggestions = search_suggestions();
     <header class="site-header">
         <a class="brand-mark" href="/">
             <span class="brand-mark__symbol">
-                <?= $brandLogo ?>
+                <?= $brandLogoResponsive ?>
             </span>
         </a>
-        <nav class="nav" aria-label="Primary">
-            <button class="nav-search" type="button" data-global-search-open>
-                <span>Search</span>
-                <svg viewBox="0 0 24 24" aria-hidden="true">
-                    <path d="m21 21-4.35-4.35"></path>
-                    <circle cx="11" cy="11" r="7"></circle>
-                </svg>
-            </button>
+        <nav class="nav__browse" aria-label="Browse">
             <details class="browse-menu">
                 <summary>Browse</summary>
                 <div class="browse-menu__panel">
@@ -49,28 +43,37 @@ $globalSearchSuggestions = search_suggestions();
                 <a href="/stores">Stores</a>
                 <a href="/items">Items</a>
             </div>
-            <a class="nav__news" href="/news">News</a>
-            <?php if ($signedInUser): ?>
-                <details class="account-menu">
-                    <summary aria-label="Open account menu">
-                        <span class="account-menu__avatar"><?= e(strtoupper(substr($signedInUser['email'], 0, 1))) ?></span>
-                        <span class="account-menu__label">Account</span>
-                    </summary>
-                    <div class="account-menu__panel">
-                        <span class="account-menu__email"><?= e($signedInUser['email']) ?></span>
-                        <a href="/account">Dashboard</a>
-                        <a href="/account#saved">Saved</a>
-                        <a href="/account#preferences">Preferences</a>
-                        <?php if (is_admin()): ?><a href="/admin">Admin</a><?php endif; ?>
-                        <form action="/logout" method="post">
-                            <input type="hidden" name="csrf_token" value="<?= e(csrf_token()) ?>">
-                            <button type="submit" class="link-button">Log out</button>
-                        </form>
-                    </div>
-                </details>
-            <?php else: ?>
-                <a class="button button--quiet nav__login" href="/account?redirect=<?= e(urlencode($signedOutRedirect)) ?>">Join or log in</a>
-            <?php endif; ?>
+        </nav>
+        <nav class="nav__utilities" aria-label="Primary">
+                <button class="nav-search" type="button" data-global-search-open>
+                    <span>Search</span>
+                    <svg viewBox="0 0 24 24" aria-hidden="true">
+                        <path d="m21 21-4.35-4.35"></path>
+                        <circle cx="11" cy="11" r="7"></circle>
+                    </svg>
+                </button>
+                <a class="nav__news" href="/news">News</a>
+                <?php if ($signedInUser): ?>
+                    <details class="account-menu">
+                        <summary aria-label="Open account menu">
+                            <span class="account-menu__avatar"><?= e(strtoupper(substr($signedInUser['email'], 0, 1))) ?></span>
+                            <span class="account-menu__label">Account</span>
+                        </summary>
+                        <div class="account-menu__panel">
+                            <span class="account-menu__email"><?= e($signedInUser['email']) ?></span>
+                            <a href="/account">Dashboard</a>
+                            <a href="/account#saved">Saved</a>
+                            <a href="/account#preferences">Preferences</a>
+                            <?php if (is_admin()): ?><a href="/admin">Admin</a><?php endif; ?>
+                            <form action="/logout" method="post">
+                                <input type="hidden" name="csrf_token" value="<?= e(csrf_token()) ?>">
+                                <button type="submit" class="link-button">Log out</button>
+                            </form>
+                        </div>
+                    </details>
+                <?php else: ?>
+                    <a class="button button--quiet nav__login" href="/account?redirect=<?= e(urlencode($signedOutRedirect)) ?>">Join or log in</a>
+                <?php endif; ?>
         </nav>
     </header>
 
@@ -108,7 +111,7 @@ $globalSearchSuggestions = search_suggestions();
         <div class="site-footer__brand">
             <a class="brand-mark brand-mark--footer" href="/">
                 <span class="brand-mark__symbol">
-                    <?= $brandLogo ?>
+                    <?= $brandLogoHorizontal ?>
                 </span>
             </a>
             <p>Better brands, easier to find at <?= e($appDomain) ?>.</p>

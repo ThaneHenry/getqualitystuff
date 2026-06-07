@@ -158,3 +158,7 @@ GET_QUALITY_STUFF_MAIL_FROM=hello@getqualitystuff.com
 - Ensure the web root points to `public`.
 - Ensure `storage` is writable by PHP.
 - Set `GET_QUALITY_STUFF_ADMIN_EMAIL` and `GET_QUALITY_STUFF_ADMIN_PASSWORD` in the hosting environment before first run.
+
+## Todo
+
+- Design a better mobile navigation pattern instead of relying on progressively hiding header links.
