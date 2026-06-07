@@ -162,6 +162,69 @@ main,
     font-size: .9rem;
 }
 
+.legal-document {
+    display: grid;
+    grid-template-columns: minmax(0, 760px);
+    gap: 30px;
+    padding: 54px 0 20px;
+}
+
+.legal-document__header {
+    display: grid;
+    gap: 14px;
+    padding-bottom: 30px;
+    border-bottom: 1px solid var(--line);
+}
+
+.legal-document__header h1,
+.legal-document__header p,
+.legal-document__section h2,
+.legal-document__section h3,
+.legal-document__section p,
+.legal-document__section ul {
+    margin: 0;
+}
+
+.legal-document__header h1 {
+    font-family: var(--display-font);
+    font-size: var(--heading-page);
+    line-height: 1.06;
+}
+
+.legal-document__meta,
+.legal-document__summary {
+    color: var(--muted);
+}
+
+.legal-document__summary {
+    max-width: 680px;
+    font-size: 1.08rem;
+}
+
+.legal-document__section {
+    display: grid;
+    gap: 14px;
+}
+
+.legal-document__section h2 {
+    padding-top: 6px;
+}
+
+.legal-document__section h3 {
+    font-size: 1rem;
+}
+
+.legal-document__section ul {
+    display: grid;
+    gap: 8px;
+    padding-left: 22px;
+}
+
+.legal-document__section a {
+    color: var(--leaf);
+    font-weight: 700;
+}
+
 .hero-search {
     display: grid;
     grid-template-columns: 1fr;

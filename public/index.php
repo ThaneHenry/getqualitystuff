@@ -123,6 +123,20 @@ function route(string $path, string $method): void
         return;
     }
 
+    if ($path === '/privacy') {
+        render('privacy', [
+            'title' => 'Privacy policy',
+        ]);
+        return;
+    }
+
+    if ($path === '/tos') {
+        render('tos', [
+            'title' => 'Terms of service',
+        ]);
+        return;
+    }
+
     if ($path === '/awards') {
         render('awards', [
             'title' => 'Awards',

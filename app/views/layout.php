@@ -134,10 +134,12 @@ $globalSearchSuggestions = search_suggestions();
             <a href="/news">News</a>
             <a href="/awards">Awards</a>
             <a href="/about">About</a>
+            <a href="/privacy">Privacy</a>
+            <a href="/tos">Terms</a>
             <?php if (is_admin()): ?><a href="/admin">Admin</a><?php endif; ?>
             <?php if ($signedInUser): ?><a href="/account">Account</a><?php else: ?><a href="/account">Log in</a><?php endif; ?>
         </nav>
-        <p class="site-footer__fineprint">&copy; <?= e(date('Y')) ?> <?= e($appName) ?>. <?= e($appDomain) ?>.</p>
+        <p class="site-footer__fineprint">&copy; <?= e(date('Y')) ?> <?= e($appName) ?>. A service of BROFORGE LIMITED, company number 16918817.</p>
     </footer>
 </body>
 </html>
