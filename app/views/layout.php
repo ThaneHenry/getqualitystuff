@@ -121,6 +121,7 @@ $globalSearchSuggestions = search_suggestions();
             <a href="/stores">Stores</a>
             <a href="/items">Items</a>
             <a href="/news">News</a>
+            <a href="/about">About</a>
             <?php if (is_admin()): ?><a href="/admin">Admin</a><?php endif; ?>
             <?php if ($signedInUser): ?><a href="/account">Account</a><?php else: ?><a href="/account">Join or log in</a><?php endif; ?>
         </nav>

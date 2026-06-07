@@ -101,6 +101,20 @@ function route(string $path, string $method): void
         return;
     }
 
+    if ($path === '/about') {
+        render('about', [
+            'title' => 'About',
+        ]);
+        return;
+    }
+
+    if ($path === '/about/brand') {
+        render('about_brand', [
+            'title' => 'Brand guide',
+        ]);
+        return;
+    }
+
     if ($path === '/register') {
         if ($method === 'POST') {
             handle_register();

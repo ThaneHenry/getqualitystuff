@@ -159,6 +159,10 @@ GET_QUALITY_STUFF_MAIL_FROM=hello@getqualitystuff.com
 - Ensure `storage` is writable by PHP.
 - Set `GET_QUALITY_STUFF_ADMIN_EMAIL` and `GET_QUALITY_STUFF_ADMIN_PASSWORD` in the hosting environment before first run.
 
-## Todo
+## Project Reference Files
 
-- Design a better mobile navigation pattern instead of relying on progressively hiding header links.
+Use these files when working in the relevant project context:
+
+- [`resources.md`](resources.md) lists useful external design, development, and infrastructure resources. Refer to it when choosing tools, assets, or services, and update it when the project adopts a notable new resource.
+- [`inspiration.md`](inspiration.md) lists websites to regularly review for design, content, and product inspiration. Refer to it during design exploration and add strong new examples as they are discovered.
+- [`todo.md`](todo.md) tracks planned project improvements and outstanding work. Refer to it when planning or prioritizing work, and keep it current as tasks are added or completed.
