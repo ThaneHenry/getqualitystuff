@@ -234,6 +234,8 @@ function upsert_item_from_csv(array $data, int $brandId): int
         'description' => $data['description'] ?? '',
         'url' => $data['url'] ?? '',
         'image_url' => $data['image_url'] ?? '',
+        'warranty' => $data['warranty'] ?? ($existingItem['warranty'] ?? ''),
+        'warranty_details' => $data['warranty_details'] ?? ($existingItem['warranty_details'] ?? ''),
         'assessment_status' => $data['assessment_status'] ?? ($existingItem['assessment_status'] ?? 'listed'),
         'assessment_summary' => $data['assessment_summary'] ?? ($existingItem['assessment_summary'] ?? ''),
         'assessment_strengths' => $data['assessment_strengths'] ?? ($existingItem['assessment_strengths'] ?? ''),

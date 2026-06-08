@@ -98,6 +98,8 @@ CREATE TABLE IF NOT EXISTS items (
     description TEXT NOT NULL DEFAULT '',
     url TEXT NOT NULL DEFAULT '',
     image_url TEXT NOT NULL DEFAULT '',
+    warranty TEXT NOT NULL DEFAULT '',
+    warranty_details TEXT NOT NULL DEFAULT '',
     assessment_status TEXT NOT NULL DEFAULT 'listed' CHECK (assessment_status IN ('listed', 'investigating', 'assessed', 'needs_update')),
     assessment_summary TEXT NOT NULL DEFAULT '',
     assessment_strengths TEXT NOT NULL DEFAULT '',
@@ -110,6 +112,17 @@ CREATE TABLE IF NOT EXISTS items (
     UNIQUE (brand_id, name),
     FOREIGN KEY (brand_id) REFERENCES brands(id) ON DELETE CASCADE,
     FOREIGN KEY (category_id) REFERENCES categories(id) ON DELETE SET NULL
+);
+
+CREATE TABLE IF NOT EXISTS item_purchase_links (
+    item_id INTEGER NOT NULL,
+    listing_id INTEGER NOT NULL,
+    url TEXT NOT NULL,
+    created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (item_id, listing_id),
+    FOREIGN KEY (item_id) REFERENCES items(id) ON DELETE CASCADE,
+    FOREIGN KEY (listing_id) REFERENCES brands(id) ON DELETE CASCADE
 );
 
 CREATE TABLE IF NOT EXISTS score_criteria (
@@ -190,6 +203,7 @@ CREATE TABLE IF NOT EXISTS news_articles (
 CREATE INDEX IF NOT EXISTS idx_brands_category_id ON brands(category_id);
 CREATE INDEX IF NOT EXISTS idx_items_brand_id ON items(brand_id);
 CREATE INDEX IF NOT EXISTS idx_items_category_id ON items(category_id);
+CREATE INDEX IF NOT EXISTS idx_item_purchase_links_listing_id ON item_purchase_links(listing_id);
 CREATE INDEX IF NOT EXISTS idx_scores_entity ON scores(entity_type, entity_id);
 CREATE INDEX IF NOT EXISTS idx_assessment_sources_entity ON assessment_sources(entity_type, entity_id);
 CREATE INDEX IF NOT EXISTS idx_brand_awards_award_id ON brand_awards(award_id);

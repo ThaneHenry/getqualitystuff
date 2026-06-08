@@ -8,3 +8,5 @@
 - Explore a more tailored homepage discovery journey.
 - Add Product Hunt-style contextual action buttons to the right side of listing cards.
 - Continue refining assessment concepts for “Built to last,” “Repairable,” and “Low waste.”
+- Put listing cards in a narrower container (like producthunt.com)
+- When the search button is used on the non-home page, it should probably spawn a bit higher up, less vertically centered, to allow more view of the temporary results

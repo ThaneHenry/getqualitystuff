@@ -157,7 +157,7 @@ function find_or_create_category(?string $name): ?int
         return null;
     }
 
-    $stmt = db()->prepare('SELECT id FROM categories WHERE name = :name LIMIT 1');
+    $stmt = db()->prepare('SELECT id FROM categories WHERE lower(name) = lower(:name) LIMIT 1');
     $stmt->execute(['name' => $name]);
     $existing = $stmt->fetchColumn();
     if ($existing) {
@@ -772,6 +772,55 @@ function find_item_by_id(int $id): ?array
     return $item ?: null;
 }
 
+function item_purchase_links(int $itemId): array
+{
+    $stmt = db()->prepare(
+        'SELECT pl.*, b.name AS listing_name, b.slug AS listing_slug
+         FROM item_purchase_links pl
+         INNER JOIN brands b ON b.id = pl.listing_id
+         WHERE pl.item_id = :item_id
+         ORDER BY b.name'
+    );
+    $stmt->execute(['item_id' => $itemId]);
+    return $stmt->fetchAll();
+}
+
+function purchase_links_editor_value(int $itemId): string
+{
+    return implode("\n", array_map(
+        static fn (array $link): string => $link['listing_name'] . ' | ' . $link['url'],
+        item_purchase_links($itemId)
+    ));
+}
+
+function save_item_purchase_links(int $itemId, string $raw): void
+{
+    $links = [];
+    foreach (editorial_lines($raw) as $line) {
+        [$listingName, $url] = array_pad(array_map('trim', explode('|', $line, 2)), 2, '');
+        if ($listingName === '' || !filter_var($url, FILTER_VALIDATE_URL)) {
+            continue;
+        }
+
+        $stmt = db()->prepare('SELECT id FROM brands WHERE lower(name) = lower(:name) LIMIT 1');
+        $stmt->execute(['name' => $listingName]);
+        $listingId = $stmt->fetchColumn();
+        if (!$listingId) {
+            throw new InvalidArgumentException("Purchase-link listing does not exist: {$listingName}.");
+        }
+        $links[(int) $listingId] = $url;
+    }
+
+    $delete = db()->prepare('DELETE FROM item_purchase_links WHERE item_id = :item_id');
+    $delete->execute(['item_id' => $itemId]);
+    $insert = db()->prepare(
+        'INSERT INTO item_purchase_links (item_id, listing_id, url) VALUES (:item_id, :listing_id, :url)'
+    );
+    foreach ($links as $listingId => $url) {
+        $insert->execute(['item_id' => $itemId, 'listing_id' => $listingId, 'url' => $url]);
+    }
+}
+
 function brand_items(int $brandId): array
 {
     $stmt = db()->prepare(
@@ -1010,6 +1059,8 @@ function save_item(array $data, ?int $id = null): int
         'description' => trim((string) ($data['description'] ?? '')),
         'url' => trim((string) ($data['url'] ?? '')),
         'image_url' => trim((string) ($data['image_url'] ?? '')),
+        'warranty' => trim((string) ($data['warranty'] ?? '')),
+        'warranty_details' => trim((string) ($data['warranty_details'] ?? '')),
         'assessment_status' => array_key_exists((string) ($data['assessment_status'] ?? ''), assessment_statuses()) ? $data['assessment_status'] : 'listed',
         'assessment_summary' => trim((string) ($data['assessment_summary'] ?? '')),
         'assessment_strengths' => trim((string) ($data['assessment_strengths'] ?? '')),
@@ -1021,8 +1072,8 @@ function save_item(array $data, ?int $id = null): int
 
     if ($id === null) {
         $stmt = db()->prepare(
-            'INSERT INTO items (brand_id, name, slug, category_id, description, url, image_url, assessment_status, assessment_summary, assessment_strengths, assessment_caveats, reviewed_at, featured, popular)
-             VALUES (:brand_id, :name, :slug, :category_id, :description, :url, :image_url, :assessment_status, :assessment_summary, :assessment_strengths, :assessment_caveats, :reviewed_at, :featured, :popular)'
+            'INSERT INTO items (brand_id, name, slug, category_id, description, url, image_url, warranty, warranty_details, assessment_status, assessment_summary, assessment_strengths, assessment_caveats, reviewed_at, featured, popular)
+             VALUES (:brand_id, :name, :slug, :category_id, :description, :url, :image_url, :warranty, :warranty_details, :assessment_status, :assessment_summary, :assessment_strengths, :assessment_caveats, :reviewed_at, :featured, :popular)'
         );
         $stmt->execute($params);
         return (int) db()->lastInsertId();
@@ -1032,7 +1083,8 @@ function save_item(array $data, ?int $id = null): int
     $stmt = db()->prepare(
         'UPDATE items
          SET brand_id = :brand_id, name = :name, slug = :slug, category_id = :category_id,
-             description = :description, url = :url, image_url = :image_url, featured = :featured, popular = :popular,
+             description = :description, url = :url, image_url = :image_url, warranty = :warranty,
+             warranty_details = :warranty_details, featured = :featured, popular = :popular,
              assessment_status = :assessment_status, assessment_summary = :assessment_summary,
              assessment_strengths = :assessment_strengths, assessment_caveats = :assessment_caveats, reviewed_at = :reviewed_at,
              updated_at = CURRENT_TIMESTAMP

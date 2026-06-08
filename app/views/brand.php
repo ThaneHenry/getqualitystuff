@@ -14,7 +14,7 @@
     <div>
         <p class="eyebrow"><?= e(category_label($brand['category_name'] ?: 'Brand')) ?></p>
         <h1><?= e($brand['name']) ?></h1>
-        <p><?= e($brand['assessment_summary'] ?: assessment_status_message($brand['assessment_status'])) ?></p>
+        <p><?= e($brand['description'] ?: '...') ?></p>
         <div class="detail-actions">
             <?php if ($brand['url']): ?><a class="primary-link" href="<?= e($brand['url']) ?>" rel="noopener" target="_blank">Visit website <?= icon_markup('external') ?></a><?php endif; ?>
             <?php $entityType = 'brand'; $entityId = (int) $brand['id']; require __DIR__ . '/partials/save_button.php'; ?>
@@ -28,19 +28,31 @@
     <?php endif; ?>
 </section>
 
-<section class="facts-grid">
-    <?php if ($brand['company_location']): ?>
-        <div><span>Company</span><strong><?= flag_markup($brand['company_location']) ?> <?= e(country_name($brand['company_location'])) ?></strong></div>
-    <?php endif; ?>
-    <?php if ($brand['manufacturing_location']): ?>
-        <div><span>Manufacturing</span><strong><?= flag_markup($brand['manufacturing_location']) ?> <?= e(country_name($brand['manufacturing_location'])) ?></strong></div>
-    <?php endif; ?>
-    <?php if ($brand['warranty']): ?>
-        <div><span>Warranty</span><strong><?= e($brand['warranty']) ?></strong></div>
-    <?php endif; ?>
-</section>
+<?php if ($brand['company_location'] || $brand['manufacturing_location'] || $brand['warranty']): ?>
+    <section class="facts-grid">
+        <?php if ($brand['company_location']): ?>
+            <div><span>Company</span><strong><?= flag_markup($brand['company_location']) ?> <?= e(country_name($brand['company_location'])) ?></strong></div>
+        <?php endif; ?>
+        <?php if ($brand['manufacturing_location']): ?>
+            <div><span>Manufacturing</span><strong><?= flag_markup($brand['manufacturing_location']) ?> <?= e(country_name($brand['manufacturing_location'])) ?></strong></div>
+        <?php endif; ?>
+        <?php if ($brand['warranty']): ?>
+            <div><span>Warranty</span><strong><?= e($brand['warranty']) ?></strong></div>
+        <?php endif; ?>
+    </section>
+<?php endif; ?>
 
-<?php $entity = $brand; require __DIR__ . '/partials/assessment.php'; ?>
+<?php
+$hasAssessment = ($brand['assessment_status'] ?? 'listed') !== 'listed'
+    || trim((string) ($brand['assessment_summary'] ?? '')) !== ''
+    || trim((string) ($brand['assessment_strengths'] ?? '')) !== ''
+    || trim((string) ($brand['assessment_caveats'] ?? '')) !== ''
+    || !empty($brand['reviewed_at'])
+    || !empty($sources);
+?>
+<?php if ($hasAssessment): ?>
+    <?php $entity = $brand; require __DIR__ . '/partials/assessment.php'; ?>
+<?php endif; ?>
 <?php if ($awards): ?>
 <section class="section-block brand-awards">
     <p class="eyebrow">GQS awards</p>

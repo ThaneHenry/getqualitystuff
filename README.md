@@ -128,6 +128,27 @@ rn,url,category,company location,manufacturing location,warranty,notes
 
 Those rows are imported as brands. `rn` becomes the brand name, `notes` is stored on the brand profile, and the location/warranty fields are stored on the brand profile.
 
+To rebuild and import the curated Buy It For Life catalog:
+
+```sh
+php scripts/build_buyitforlife_catalog.php
+php scripts/import_buyitforlife.php
+```
+
+The importer is idempotent. It creates missing brands/store listings and adds named purchase links without duplicating existing records.
+
+After the reviewed code and dataset have been committed and deployed, import
+the catalog into DreamHost's existing production database with:
+
+```sh
+scripts/import-buyitforlife-production.sh
+```
+
+This command refuses to run with uncommitted changes, downloads a production
+database backup, requires an `IMPORT` confirmation, runs the idempotent importer
+on DreamHost, and verifies the resulting item/link counts and SQLite integrity.
+It does not upload or replace the local database.
+
 ## Brand Metadata
 
 If a brand has a website URL but no custom description, Get Quality Stuff tries to use the website's Open Graph description (`og:description`) when the brand is saved or imported. It also uses the website's Open Graph image (`og:image`) when no image URL has been provided.

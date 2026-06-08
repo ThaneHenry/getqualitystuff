@@ -51,8 +51,26 @@ function migrate(PDO $pdo): void
     ensure_auth_tables($pdo);
     ensure_brand_columns($pdo);
     ensure_item_columns($pdo);
+    ensure_item_purchase_links_table($pdo);
     ensure_assessment_tables($pdo);
     ensure_award_tables($pdo);
+}
+
+function ensure_item_purchase_links_table(PDO $pdo): void
+{
+    $pdo->exec(
+        "CREATE TABLE IF NOT EXISTS item_purchase_links (
+            item_id INTEGER NOT NULL,
+            listing_id INTEGER NOT NULL,
+            url TEXT NOT NULL,
+            created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+            updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+            PRIMARY KEY (item_id, listing_id),
+            FOREIGN KEY (item_id) REFERENCES items(id) ON DELETE CASCADE,
+            FOREIGN KEY (listing_id) REFERENCES brands(id) ON DELETE CASCADE
+        );
+        CREATE INDEX IF NOT EXISTS idx_item_purchase_links_listing_id ON item_purchase_links(listing_id);"
+    );
 }
 
 function ensure_auth_tables(PDO $pdo): void
@@ -120,6 +138,8 @@ function ensure_item_columns(PDO $pdo): void
     $columns = $pdo->query('PRAGMA table_info(items)')->fetchAll();
     $existing = array_column($columns, 'name');
     $needed = [
+        'warranty' => "ALTER TABLE items ADD COLUMN warranty TEXT NOT NULL DEFAULT ''",
+        'warranty_details' => "ALTER TABLE items ADD COLUMN warranty_details TEXT NOT NULL DEFAULT ''",
         'popular' => "ALTER TABLE items ADD COLUMN popular INTEGER NOT NULL DEFAULT 0",
         'assessment_status' => "ALTER TABLE items ADD COLUMN assessment_status TEXT NOT NULL DEFAULT 'listed'",
         'assessment_summary' => "ALTER TABLE items ADD COLUMN assessment_summary TEXT NOT NULL DEFAULT ''",

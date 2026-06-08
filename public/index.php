@@ -370,6 +370,7 @@ function route(string $path, string $method): void
             'item' => $item,
             'scores' => entity_scores('item', (int) $item['id']),
             'sources' => assessment_sources('item', (int) $item['id']),
+            'purchaseLinks' => item_purchase_links((int) $item['id']),
             'isSaved' => $viewer ? is_entry_saved((int) $viewer['id'], 'item', (int) $item['id']) : false,
         ]);
         return;
@@ -615,6 +616,7 @@ function handle_item_form(string $method, ?int $id): void
         $itemId = save_item($_POST, $id);
         save_scores('item', $itemId, $_POST['scores'] ?? []);
         save_assessment_sources('item', $itemId, (string) ($_POST['assessment_sources'] ?? ''));
+        save_item_purchase_links($itemId, (string) ($_POST['purchase_links'] ?? ''));
         flash('Item saved.');
         redirect('/admin');
     }
@@ -633,6 +635,7 @@ function handle_item_form(string $method, ?int $id): void
         'categoryName' => $categoryName,
         'scores' => $id === null ? blank_scores() : entity_scores('item', $id),
         'assessmentSources' => $id === null ? '' : assessment_sources_editor_value('item', $id),
+        'purchaseLinks' => $id === null ? '' : purchase_links_editor_value($id),
     ]);
 }
 

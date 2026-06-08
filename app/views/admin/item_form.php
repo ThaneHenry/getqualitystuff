@@ -3,6 +3,7 @@
 /** @var array $brands */
 /** @var array $scores */
 /** @var string $assessmentSources */
+/** @var string $purchaseLinks */
 $isEdit = !empty($item);
 ?>
 <section class="admin-header">
@@ -27,6 +28,12 @@ $isEdit = !empty($item);
     <label>Category <input name="category" value="<?= e($categoryName ?? '') ?>"></label>
     <label>Description <textarea name="description" rows="5"><?= e($item['description'] ?? '') ?></textarea></label>
     <label>Item URL <input type="url" name="url" value="<?= e($item['url'] ?? '') ?>"></label>
+    <label>Warranty <input name="warranty" maxlength="160" value="<?= e($item['warranty'] ?? '') ?>"></label>
+    <label>Warranty details <textarea name="warranty_details" rows="4"><?= e($item['warranty_details'] ?? '') ?></textarea></label>
+    <label>Purchase links
+        <textarea name="purchase_links" rows="4" placeholder="Amazon | https://www.amazon.com/..."><?= e($purchaseLinks ?? '') ?></textarea>
+        <small class="muted">One per line as Listing | URL. The listing must already exist.</small>
+    </label>
     <label>Listing logo or image URL
         <input type="url" name="image_url" value="<?= e($item['image_url'] ?? '') ?>">
         <small class="muted">Use a square image, ideally at least 512 x 512 px. It will fill the listing thumbnail.</small>

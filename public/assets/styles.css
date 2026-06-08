@@ -1017,6 +1017,11 @@ button:hover,
     padding-left: 20px;
 }
 
+.item-warranty p {
+    margin: 8px 0 0;
+    color: var(--muted);
+}
+
 .assessment-status {
     display: inline-flex;
     align-items: center;
@@ -1841,6 +1846,14 @@ code {
     align-items: center;
     gap: 10px;
     flex-wrap: wrap;
+}
+
+.buy-item {
+    padding: 22px 0;
+}
+
+.buy-item h2 {
+    margin-bottom: 12px;
 }
 
 .nav__links {

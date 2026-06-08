@@ -30,8 +30,12 @@ rsync "${RSYNC_FLAGS[@]}" \
   --exclude='.env.*' \
   --exclude='README.md' \
   --exclude='backups/' \
-  --exclude='data/' \
-  --exclude='scripts/' \
+  --include='data/' \
+  --include='data/buyitforlife.json' \
+  --exclude='data/*' \
+  --include='scripts/' \
+  --include='scripts/import_buyitforlife.php' \
+  --exclude='scripts/*' \
   --exclude='storage/*.sqlite' \
   --exclude='storage/*.sqlite-*' \
   --exclude='public/uploads/*' \
