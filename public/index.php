@@ -45,9 +45,12 @@ function route(string $path, string $method): void
 
     if ($path === '/search') {
         $hasSearch = trim((string) ($_GET['q'] ?? '')) !== '' || trim((string) ($_GET['category'] ?? '')) !== '';
+        $pagination = paginate_directory_entries(directory_results($_GET), $_GET);
         render('brands_index', [
             'title' => $hasSearch ? 'Results' : 'Search',
-            'results' => directory_results($_GET),
+            'results' => $pagination['entries'],
+            'pagination' => $pagination,
+            'paginationPath' => '/search',
             'categories' => public_categories(),
             'filterOptions' => directory_filter_options(),
             'filters' => [
@@ -65,9 +68,12 @@ function route(string $path, string $method): void
     }
 
     if ($path === '/brands') {
+        $pagination = paginate_directory_entries(directory_results($_GET), $_GET);
         render('brands_index', [
             'title' => 'Brands',
-            'results' => directory_results($_GET),
+            'results' => $pagination['entries'],
+            'pagination' => $pagination,
+            'paginationPath' => '/brands',
             'categories' => public_categories(),
             'filterOptions' => directory_filter_options(),
             'filters' => [
@@ -84,9 +90,13 @@ function route(string $path, string $method): void
     }
 
     if ($path === '/stores') {
+        $stores = filter_directory_entries(list_stores(), $_GET);
+        $pagination = paginate_directory_entries($stores, $_GET);
         render('stores_index', [
             'title' => 'Stores',
-            'stores' => filter_directory_entries(list_stores(), $_GET),
+            'stores' => $pagination['entries'],
+            'pagination' => $pagination,
+            'paginationPath' => '/stores',
             'categories' => public_categories(),
             'filterOptions' => directory_filter_options(),
             'filters' => array_intersect_key($_GET, array_flip(['category', 'mode', 'status', 'company', 'manufacturing', 'warranty'])),
@@ -98,9 +108,13 @@ function route(string $path, string $method): void
         if (!site_capabilities()['items']) {
             redirect('/brands');
         }
+        $items = filter_directory_entries(list_items(), $_GET);
+        $pagination = paginate_directory_entries($items, $_GET);
         render('items_index', [
             'title' => 'Items',
-            'items' => filter_directory_entries(list_items(), $_GET),
+            'items' => $pagination['entries'],
+            'pagination' => $pagination,
+            'paginationPath' => '/items',
             'categories' => public_categories(),
             'filterOptions' => directory_filter_options(),
             'filters' => array_intersect_key($_GET, array_flip(['category', 'mode', 'status', 'company', 'manufacturing', 'warranty'])),

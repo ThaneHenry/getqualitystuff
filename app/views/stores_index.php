@@ -3,6 +3,8 @@
 /** @var array $categories */
 /** @var array $filters */
 /** @var array $filterOptions */
+/** @var array $pagination */
+/** @var string $paginationPath */
 ?>
 <section class="page-header">
     <div>
@@ -14,7 +16,7 @@
 
 <section class="directory-results" aria-labelledby="stores-heading">
     <div class="section-heading">
-        <h2 id="stores-heading"><?= e(count($stores)) ?> <?= count($stores) === 1 ? 'store' : 'stores' ?></h2>
+        <h2 id="stores-heading"><?= e($pagination['total']) ?> <?= (int) $pagination['total'] === 1 ? 'store' : 'stores' ?></h2>
     </div>
     <div class="directory-grid">
         <?php foreach ($stores as $store): ?>
@@ -28,7 +30,6 @@
                     </div>
                     <div class="listing-card__body">
                         <div class="card-meta">
-                            <span class="type-tag type-tag--store">Store</span>
                             <?= listing_locations_markup($store['company_location'], $store['delivery_locations'], 'Delivery locations') ?>
                             <?php if ($store['category_name']): ?><span><?= e(category_label($store['category_name'])) ?></span><?php endif; ?>
                             <?php if ((int) $store['item_count'] > 0): ?>
@@ -49,4 +50,5 @@
             </article>
         <?php endif; ?>
     </div>
+    <?php $paginationItemLabel = 'store'; require __DIR__ . '/partials/pagination.php'; ?>
 </section>

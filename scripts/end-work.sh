@@ -47,6 +47,9 @@ fi
 if ! git diff --cached --check; then
     CHECKS_FAILED=1
 fi
+if ! php scripts/audit_css.php; then
+    CHECKS_FAILED=1
+fi
 
 stop_local_server() {
     local supervisor_pid

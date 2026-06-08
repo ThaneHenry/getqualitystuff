@@ -46,6 +46,7 @@ php -r '
 
 git diff --check
 git diff --cached --check
+php scripts/audit_css.php
 
 COMMIT="$(git rev-parse --short HEAD)"
 BRANCH="$(git branch --show-current)"

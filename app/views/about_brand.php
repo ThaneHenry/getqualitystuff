@@ -59,6 +59,74 @@
 <section class="brand-guide-section">
     <div class="section-heading">
         <div>
+            <p class="eyebrow">Interface</p>
+            <h2>Controls and interaction states</h2>
+        </div>
+    </div>
+    <p class="brand-guide-note">Fields replace their existing border when active. Buttons and links keep a clear external keyboard-focus outline.</p>
+    <div class="brand-guide-control-grid">
+        <label>Default input <input type="text" value="Useful and direct"></label>
+        <label>Focused input <input class="brand-guide-focus-demo" type="text" value="Green replaces the border"></label>
+        <label>Error input <input type="text" value="Needs attention" aria-invalid="true"></label>
+        <label>Dropdown <select><option>Recommended</option></select></label>
+        <label>Textarea <textarea rows="3">Clear supporting detail.</textarea></label>
+        <label>Disabled input <input type="text" value="Unavailable" disabled></label>
+    </div>
+    <div class="brand-guide-actions">
+        <button type="button">Primary action</button>
+        <button class="button--quiet" type="button">Quiet action</button>
+        <button type="button" disabled>Disabled action</button>
+        <a class="primary-link" href="#ui-statuses">Linked action</a>
+    </div>
+</section>
+
+<section class="brand-guide-section" id="ui-statuses">
+    <div class="section-heading">
+        <div>
+            <p class="eyebrow">Interface</p>
+            <h2>Cards, panels, and statuses</h2>
+        </div>
+    </div>
+    <div class="brand-guide-example-grid">
+        <article class="about-card">
+            <h3>Simple card</h3>
+            <p>Use cards to group a compact, self-contained piece of information.</p>
+        </article>
+        <article class="assessment-block">
+            <h3>Supporting panel</h3>
+            <p class="assessment-summary">Use tinted panels sparingly for evidence, guidance, or a meaningful status.</p>
+        </article>
+    </div>
+    <div class="brand-guide-status-grid">
+        <span class="type-tag type-tag--brand">Brand</span>
+        <span class="type-tag type-tag--store">Store</span>
+        <span class="type-tag type-tag--item">Item</span>
+        <span class="assessment-status">Listed</span>
+        <span class="assessment-status assessment-status--needs_update">Needs update</span>
+    </div>
+</section>
+
+<section class="brand-guide-section">
+    <div class="section-heading">
+        <div>
+            <p class="eyebrow">Interface</p>
+            <h2>Spacing scale</h2>
+        </div>
+    </div>
+    <p class="brand-guide-note">Use the shared spacing scale before introducing a new gap or padding value.</p>
+    <div class="brand-guide-spacing-grid" aria-label="Spacing scale">
+        <?php foreach ([1 => 4, 2 => 8, 3 => 12, 4 => 16, 5 => 24, 6 => 32, 7 => 48, 8 => 64] as $step => $pixels): ?>
+            <div class="brand-guide-spacing-sample brand-guide-spacing-sample--<?= e((string) $step) ?>">
+                <span aria-hidden="true"></span>
+                <code><?= e((string) $pixels) ?>px</code>
+            </div>
+        <?php endforeach; ?>
+    </div>
+</section>
+
+<section class="brand-guide-section">
+    <div class="section-heading">
+        <div>
             <p class="eyebrow">Typography</p>
             <h2>Type styles</h2>
         </div>

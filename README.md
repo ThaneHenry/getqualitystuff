@@ -186,6 +186,18 @@ local images.
 
 The first configured admin account is seeded automatically when the app starts, but only when both `GET_QUALITY_STUFF_ADMIN_EMAIL` and `GET_QUALITY_STUFF_ADMIN_PASSWORD` are set. The local start script sets dev-only credentials for testing.
 
+## Style System
+
+The site uses plain CSS without a build step. Stylesheets are loaded in this order:
+
+1. `public/assets/styles/tokens.css` for brand and semantic design tokens
+2. `public/assets/styles/base.css` for document defaults and controls
+3. `public/assets/styles/components.css` for reusable interface components
+4. `public/assets/styles/pages.css` for page layouts and responsive rules
+
+Use `/about/brand` as the living visual reference. Run `php scripts/audit_css.php`
+after styling changes; the end-work and deployment checks run it automatically.
+
 ## Account Email
 
 Email verification and password recovery use a configurable mail transport:

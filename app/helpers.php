@@ -40,6 +40,19 @@ function request_method(): string
     return strtoupper($_SERVER['REQUEST_METHOD'] ?? 'GET');
 }
 
+function query_int(mixed $value, int $default = 1): int
+{
+    if (is_array($value)) {
+        return $default;
+    }
+
+    $filtered = filter_var($value, FILTER_VALIDATE_INT, [
+        'options' => ['min_range' => 1],
+    ]);
+
+    return $filtered === false ? $default : (int) $filtered;
+}
+
 function current_path(): string
 {
     $path = parse_url($_SERVER['REQUEST_URI'] ?? '/', PHP_URL_PATH);
@@ -138,6 +151,67 @@ function public_categories(): array
         all_categories(),
         static fn (array $category): bool => !in_array(strtolower($category['name']), ['test', 'various', 'girl stuff'], true)
     ));
+}
+
+function paginate_directory_entries(array $entries, array $query, int $perPage = 15): array
+{
+    $total = count($entries);
+    $perPage = max(1, $perPage);
+    $totalPages = max(1, (int) ceil($total / $perPage));
+    $currentPage = min(query_int($query['page'] ?? null), $totalPages);
+    $offset = ($currentPage - 1) * $perPage;
+
+    return [
+        'entries' => array_slice($entries, $offset, $perPage),
+        'total' => $total,
+        'per_page' => $perPage,
+        'current_page' => $currentPage,
+        'total_pages' => $totalPages,
+        'first_item' => $total === 0 ? 0 : $offset + 1,
+        'last_item' => min($offset + $perPage, $total),
+    ];
+}
+
+function pagination_url(string $path, array $query, int $page): string
+{
+    $query = array_filter($query, static fn (mixed $value): bool => !is_array($value) && trim((string) $value) !== '');
+    if ($page <= 1) {
+        unset($query['page']);
+    } else {
+        $query['page'] = (string) $page;
+    }
+
+    $queryString = http_build_query($query);
+    return $path . ($queryString === '' ? '' : '?' . $queryString);
+}
+
+function pagination_page_items(int $currentPage, int $totalPages): array
+{
+    if ($totalPages <= 7) {
+        return range(1, $totalPages);
+    }
+
+    $pages = [1, $totalPages];
+    for ($page = $currentPage - 1; $page <= $currentPage + 1; $page++) {
+        if ($page > 1 && $page < $totalPages) {
+            $pages[] = $page;
+        }
+    }
+
+    $pages = array_values(array_unique($pages));
+    sort($pages);
+
+    $items = [];
+    $previous = null;
+    foreach ($pages as $page) {
+        if ($previous !== null && $page > $previous + 1) {
+            $items[] = 'ellipsis';
+        }
+        $items[] = $page;
+        $previous = $page;
+    }
+
+    return $items;
 }
 
 function category_label(?string $value): string

@@ -3,11 +3,14 @@
 /** @var array $categories */
 /** @var array $filters */
 /** @var array $filterOptions */
+/** @var array $pagination */
+/** @var string $paginationPath */
 $isSearchPage = $isSearchPage ?? false;
 $hasSearch = $isSearchPage && trim((string) ($filters['q'] ?? '')) !== '';
+$totalResults = (int) $pagination['total'];
 $resultCountLabel = $hasSearch
-    ? (count($results) === 1 ? 'result' : 'results')
-    : (count($results) === 1 ? 'brand' : 'brands');
+    ? ($totalResults === 1 ? 'result' : 'results')
+    : ($totalResults === 1 ? 'brand' : 'brands');
 ?>
 <section class="page-header">
     <div>
@@ -35,7 +38,7 @@ $resultCountLabel = $hasSearch
 
 <section class="directory-results" aria-labelledby="results-heading">
     <div class="section-heading">
-        <h2 id="results-heading"><?= e(count($results)) ?> <?= e($resultCountLabel) ?></h2>
+        <h2 id="results-heading"><?= e($totalResults) ?> <?= e($resultCountLabel) ?></h2>
     </div>
     <div class="directory-grid">
     <?php if (!$results): ?>
@@ -57,7 +60,7 @@ $resultCountLabel = $hasSearch
                 </div>
                 <div class="listing-card__body">
                     <div class="card-meta">
-                        <span class="type-tag type-tag--brand">Brand</span>
+                        <?php if ($isSearchPage): ?><span class="type-tag type-tag--brand">Brand</span><?php endif; ?>
                         <?= listing_locations_markup($result['company_location'], $result['manufacturing_location'], 'Manufacturing location') ?>
                         <?php if ($result['category_name']): ?><span><?= e(category_label($result['category_name'])) ?></span><?php endif; ?>
                         <?php if ((int) $result['item_count'] > 0): ?>
@@ -74,4 +77,5 @@ $resultCountLabel = $hasSearch
         </article>
     <?php endforeach; ?>
     </div>
+    <?php $paginationItemLabel = $hasSearch ? 'result' : 'brand'; require __DIR__ . '/partials/pagination.php'; ?>
 </section>

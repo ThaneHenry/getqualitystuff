@@ -1,0 +1,93 @@
+:root {
+    color-scheme: light;
+
+    /* Brand palette */
+    --ink: #222222;
+    --muted: #6a6a6a;
+    --paper: #ffffff;
+    --panel: #ffffff;
+    --leaf: #26735b;
+    --accent: #ff385c;
+    --accent-dark: #d70466;
+    --soft: #f7f7f7;
+
+    /* Semantic colour */
+    --text-secondary: #4b4b4b;
+    --text-tertiary: #717171;
+    --text-disabled: #b7b7b7;
+    --line: #dddddd;
+    --line-subtle: #ebebeb;
+    --line-soft: #eeeeee;
+    --line-strong: #d7d9dd;
+    --line-control: #d7d7d7;
+    --line-success: #d9e6df;
+    --surface-success: #eef7f2;
+    --surface-success-soft: #f7fbf9;
+    --surface-image: #f0f5f1;
+    --surface-danger: #fff0f0;
+    --danger: #a03a35;
+    --surface-store: #fff0f5;
+    --line-store: #f5c4d5;
+    --surface-item: #f5f1fa;
+    --line-item: #d9d0e5;
+    --item: #67437a;
+    --surface-code: #efe9df;
+    --surface-meter: #ece7df;
+    --surface-hover-strong: #ececec;
+    --line-location: #cfd4d1;
+    --line-provider: #d7dce4;
+    --line-provider-hover: #b8c0cc;
+    --quiet-text: #344054;
+    --quiet-line: #eaecf0;
+    --backdrop: rgba(34, 34, 34, .34);
+    --backdrop-strong: rgba(34, 34, 34, .42);
+    --highlight-accent: rgba(255, 56, 92, .18);
+    --code-overlay: rgba(255, 255, 255, .8);
+
+    /* Shape and layout */
+    --radius-control: 7px;
+    --radius-card: 10px;
+    --radius-panel: 12px;
+    --radius-small: 5px;
+    --radius-pill: 999px;
+    --content-width: 1240px;
+    --search-width: 900px;
+    --listing-width: 840px;
+    /* Reference values; custom properties cannot be used in media queries. */
+    --breakpoint-wide: 820px;
+    --breakpoint-mobile: 680px;
+    --breakpoint-compact: 520px;
+    --space-1: 4px;
+    --space-2: 8px;
+    --space-3: 12px;
+    --space-4: 16px;
+    --space-5: 24px;
+    --space-6: 32px;
+    --space-7: 48px;
+    --space-8: 64px;
+
+    /* Typography */
+    --heading-page: clamp(2rem, 3.2vw, 3.45rem);
+    --heading-detail: clamp(1.9rem, 2.7vw, 3.1rem);
+    --heading-section: clamp(1.3rem, 1.8vw, 1.6rem);
+    --heading-card: clamp(1.05rem, 1.25vw, 1.2rem);
+    --display-font: "Unbounded", Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    --body-font: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+
+    /* Elevation and motion */
+    --shadow-xs: 0 2px 6px rgba(0, 0, 0, .04);
+    --shadow-sm: 0 2px 8px rgba(0, 0, 0, .05);
+    --shadow-card: 0 6px 18px rgba(0, 0, 0, .06);
+    --shadow-control: 0 5px 18px rgba(0, 0, 0, .08);
+    --shadow-panel: 0 8px 28px rgba(0, 0, 0, .12);
+    --shadow-popover: 0 16px 36px rgba(0, 0, 0, .14);
+    --shadow-dropdown: 0 18px 42px rgba(0, 0, 0, .16);
+    --shadow-dialog: 0 24px 70px rgba(0, 0, 0, .2);
+    --shadow-dialog-strong: 0 24px 70px rgba(0, 0, 0, .22);
+    --shadow-provider-hover: 0 4px 12px rgba(0, 0, 0, .07);
+    --shadow-filter: 0 10px 30px rgba(0, 0, 0, .08);
+    --shadow-search-highlight: 0 0 0 5px var(--highlight-accent), 0 8px 24px rgba(0, 0, 0, .12);
+    --shadow-search-highlight-static: 0 0 0 3px var(--highlight-accent);
+    --focus-ring: 3px solid var(--leaf);
+    --motion-fast: .15s ease;
+}
