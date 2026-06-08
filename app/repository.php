@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 require_once __DIR__ . '/helpers.php';
+require_once __DIR__ . '/item_images.php';
 
 function all_categories(): array
 {
@@ -1042,6 +1043,7 @@ function save_brand(array $data, ?int $id = null): int
 
 function save_item(array $data, ?int $id = null): int
 {
+    $existingItem = $id === null ? null : find_item_by_id($id);
     $categoryId = find_or_create_category($data['category'] ?? '');
     $brandId = (int) ($data['brand_id'] ?? 0);
     $brand = find_brand_by_id($brandId);
@@ -1076,7 +1078,9 @@ function save_item(array $data, ?int $id = null): int
              VALUES (:brand_id, :name, :slug, :category_id, :description, :url, :image_url, :warranty, :warranty_details, :assessment_status, :assessment_summary, :assessment_strengths, :assessment_caveats, :reviewed_at, :featured, :popular)'
         );
         $stmt->execute($params);
-        return (int) db()->lastInsertId();
+        $itemId = (int) db()->lastInsertId();
+        schedule_item_image_processing($itemId, $params['image_url'], true);
+        return $itemId;
     }
 
     $params['id'] = $id;
@@ -1091,5 +1095,6 @@ function save_item(array $data, ?int $id = null): int
          WHERE id = :id'
     );
     $stmt->execute($params);
+    schedule_item_image_processing($id, $params['image_url'], (string) ($existingItem['image_url'] ?? '') !== $params['image_url']);
     return $id;
 }

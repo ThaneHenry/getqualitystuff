@@ -67,8 +67,10 @@ function import_csv(string $path): array
         ]);
 
         db()->commit();
+        flush_item_image_processing_queue();
     } catch (Throwable $e) {
         db()->rollBack();
+        item_image_processing_queue([]);
         fclose($handle);
         throw $e;
     }

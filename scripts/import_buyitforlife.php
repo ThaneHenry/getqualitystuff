@@ -44,8 +44,10 @@ try {
         $imported++;
     }
     db()->commit();
+    flush_item_image_processing_queue();
 } catch (Throwable $e) {
     db()->rollBack();
+    item_image_processing_queue([]);
     throw $e;
 }
 

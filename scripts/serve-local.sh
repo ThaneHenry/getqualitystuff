@@ -39,6 +39,11 @@ if ! php -m | grep -Eq '^pdo_sqlite$'; then
     exit 1
 fi
 
+if ! php -r 'exit(extension_loaded("curl") && extension_loaded("gd") && function_exists("imagewebp") ? 0 : 1);'; then
+    printf '%s\n' 'Error: PHP cURL and GD with WebP support are required.' >&2
+    exit 1
+fi
+
 mkdir -p "$STORAGE_DIR"
 
 if [ -f "$PID_FILE" ]; then

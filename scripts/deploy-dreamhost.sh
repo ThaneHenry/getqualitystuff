@@ -35,8 +35,10 @@ rsync "${RSYNC_FLAGS[@]}" \
   --exclude='data/*' \
   --include='scripts/' \
   --include='scripts/import_buyitforlife.php' \
+  --include='scripts/backfill_item_images.php' \
   --exclude='scripts/*' \
   --exclude='storage/*.sqlite' \
   --exclude='storage/*.sqlite-*' \
+  --exclude='storage/item-images/' \
   --exclude='public/uploads/*' \
   ./ "${REMOTE_USER}@${REMOTE_HOST}:${REMOTE_PATH}"

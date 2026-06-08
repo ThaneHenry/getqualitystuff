@@ -5,8 +5,8 @@
 ?>
 <section class="detail-header">
     <div class="detail-image">
-        <?php if ($item['image_url']): ?>
-            <img src="<?= e($item['image_url']) ?>" alt="">
+        <?php if ($detailImage = item_image_url((int) $item['id'], 'detail')): ?>
+            <img src="<?= e($detailImage) ?>" alt="" width="1200" height="1200" decoding="async" fetchpriority="high">
         <?php else: ?>
             <span><?= e(substr($item['name'], 0, 1)) ?></span>
         <?php endif; ?>

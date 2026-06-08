@@ -45,7 +45,7 @@ foreach ($featuredItems as $item) {
         'href' => '/items/' . $item['slug'],
         'name' => $item['name'],
         'description' => $item['assessment_summary'] ?: ($item['description'] ?: '...'),
-        'image_url' => $item['image_url'],
+        'image_url' => item_image_url((int) $item['id'], 'thumbnail'),
         'category_name' => $item['category_name'],
         'company_location' => $item['company_location'],
         'secondary_location' => $item['manufacturing_location'],
@@ -120,7 +120,7 @@ foreach ($featuredItems as $item) {
                     <div class="featured-panel__image">
                         <span><?= e(substr($entry['name'], 0, 1)) ?></span>
                         <?php if ($entry['image_url']): ?>
-                            <img src="<?= e($entry['image_url']) ?>" alt="">
+                            <img src="<?= e($entry['image_url']) ?>" alt="" width="240" height="240" loading="lazy" decoding="async">
                         <?php endif; ?>
                     </div>
                     <div class="featured-card__body">

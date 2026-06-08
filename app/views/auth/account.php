@@ -38,7 +38,8 @@
                 <a href="/<?= e($entry['entity_type'] === 'brand' ? 'brands' : 'items') ?>/<?= e($entry['slug']) ?>">
                     <div class="account-entry__image">
                         <span><?= e(substr($entry['name'], 0, 1)) ?></span>
-                        <?php if ($entry['image_url']): ?><img src="<?= e($entry['image_url']) ?>" alt=""><?php endif; ?>
+                        <?php $entryImage = $entry['entity_type'] === 'item' ? item_image_url((int) $entry['entity_id'], 'thumbnail') : $entry['image_url']; ?>
+                        <?php if ($entryImage): ?><img src="<?= e($entryImage) ?>" alt="" width="240" height="240" loading="lazy" decoding="async"><?php endif; ?>
                     </div>
                     <div>
                         <span class="muted"><?= e(ucfirst($entry['entity_type'])) ?><?= $entry['brand_name'] ? ' by ' . e($entry['brand_name']) : '' ?></span>

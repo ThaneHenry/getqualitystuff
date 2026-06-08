@@ -508,6 +508,7 @@ function route_admin(string $path, string $method): void
         $itemIds = db()->prepare('SELECT id FROM items WHERE brand_id = :id');
         $itemIds->execute(['id' => (int) $matches[1]]);
         foreach ($itemIds->fetchAll() as $item) {
+            remove_item_images((int) $item['id']);
             $deleteScores = db()->prepare("DELETE FROM scores WHERE entity_type = 'item' AND entity_id = :id");
             $deleteScores->execute(['id' => (int) $item['id']]);
         }
@@ -537,6 +538,7 @@ function route_admin(string $path, string $method): void
 
     if (preg_match('#^/admin/items/(\d+)/delete$#', $path, $matches) && $method === 'POST') {
         verify_csrf();
+        remove_item_images((int) $matches[1]);
         $deleteScores = db()->prepare("DELETE FROM scores WHERE entity_type = 'item' AND entity_id = :id");
         $deleteScores->execute(['id' => (int) $matches[1]]);
         db()->prepare("DELETE FROM assessment_sources WHERE entity_type = 'item' AND entity_id = :id")->execute(['id' => (int) $matches[1]]);
@@ -655,6 +657,7 @@ function handle_item_logo(int $id): void
 
     $stmt = db()->prepare('UPDATE items SET image_url = :image_url, updated_at = CURRENT_TIMESTAMP WHERE id = :id');
     $stmt->execute(['image_url' => $imageUrl, 'id' => $id]);
+    schedule_item_image_processing($id, $imageUrl, (string) $item['image_url'] !== $imageUrl);
     flash('Logo image updated.');
     redirect('/admin/items/' . $id . '/edit');
 }

@@ -37,6 +37,13 @@ while IFS= read -r file; do
     php -l "$file" >/dev/null
 done < <(git ls-files '*.php')
 
+php -r '
+    if (!extension_loaded("curl") || !extension_loaded("gd") || !function_exists("imagewebp")) {
+        fwrite(STDERR, "PHP cURL and GD with WebP support are required.\n");
+        exit(1);
+    }
+'
+
 git diff --check
 git diff --cached --check
 
@@ -145,6 +152,12 @@ do
 done
 
 echo "Production app URL and Google sign-in credentials are configured."
+php -r '
+    if (!extension_loaded("curl") || !extension_loaded("gd") || !function_exists("imagewebp")) {
+        fwrite(STDERR, "Production PHP requires cURL and GD with WebP support.\n");
+        exit(1);
+    }
+'
 REMOTE_CONFIG_CHECK
 then
     echo "Deployment stopped before uploading code." >&2

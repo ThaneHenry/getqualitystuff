@@ -2,6 +2,7 @@
 /storage/*.sqlite-*
 /storage/.local-server.pid
 /storage/mail.log
+/storage/item-images/
 /data/initial.csv
 /public/uploads/*
 !/public/uploads/.gitkeep

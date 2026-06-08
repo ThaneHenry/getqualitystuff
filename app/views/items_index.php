@@ -17,13 +17,13 @@
         <h2 id="items-heading"><?= e(count($items)) ?> <?= count($items) === 1 ? 'item' : 'items' ?></h2>
     </div>
     <div class="directory-grid">
-        <?php foreach ($items as $item): ?>
+        <?php foreach ($items as $index => $item): ?>
             <article class="listing-card">
                 <a href="/items/<?= e($item['slug']) ?>" class="listing-card__link" aria-label="<?= e($item['name']) ?>">
                     <div class="listing-card__image">
                         <span><?= e(substr($item['name'], 0, 1)) ?></span>
-                        <?php if ($item['image_url']): ?>
-                            <img src="<?= e($item['image_url']) ?>" alt="">
+                        <?php if ($thumbnail = item_image_url((int) $item['id'], 'thumbnail')): ?>
+                            <img src="<?= e($thumbnail) ?>" alt="" width="240" height="240" decoding="async" <?= $index < 6 ? 'fetchpriority="high"' : 'loading="lazy"' ?>>
                         <?php endif; ?>
                     </div>
                     <div class="listing-card__body">

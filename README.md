@@ -5,6 +5,7 @@ A plain PHP + SQLite directory for good physical brands and items.
 ## Requirements
 
 - PHP 8.2+ with PDO SQLite enabled
+- PHP cURL and GD with WebP support
 - SQLite 3
 
 On macOS, one common setup is:
@@ -161,6 +162,25 @@ php scripts/backfill_og_images.php 25
 ```
 
 The optional number limits how many brands are checked in one run. Existing custom descriptions and image URLs are left unchanged.
+
+## Item Images
+
+Item source image URLs are retained in the database, but public pages only use
+locally generated images. Unchanged originals are stored privately under
+`storage/item-images`, while 1200 px detail images and 240 px listing thumbnails
+are stored under `public/uploads/item-images`.
+
+New and changed item images are processed when an item is saved or imported.
+To process existing items or retry failures:
+
+```sh
+php scripts/backfill_item_images.php
+php scripts/backfill_item_images.php 25
+php scripts/backfill_item_images.php --force
+```
+
+The optional number limits the items checked. `--force` regenerates existing
+local images.
 
 ## Admin
 

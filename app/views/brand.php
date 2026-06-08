@@ -78,7 +78,7 @@ $hasAssessment = ($brand['assessment_status'] ?? 'listed') !== 'listed'
                 <a class="listing-card__link" href="/items/<?= e($item['slug']) ?>">
                     <div class="listing-card__image">
                         <span><?= e(substr($item['name'], 0, 1)) ?></span>
-                        <?php if ($item['image_url']): ?><img src="<?= e($item['image_url']) ?>" alt=""><?php endif; ?>
+                        <?php if ($thumbnail = item_image_url((int) $item['id'], 'thumbnail')): ?><img src="<?= e($thumbnail) ?>" alt="" width="240" height="240" loading="lazy" decoding="async"><?php endif; ?>
                     </div>
                     <div class="listing-card__body">
                         <div class="card-meta">

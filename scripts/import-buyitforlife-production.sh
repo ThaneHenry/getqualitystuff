@@ -48,7 +48,12 @@ ssh \
     -o PreferredAuthentications=password \
     -o PubkeyAuthentication=no \
     "${REMOTE_USER}@${REMOTE_HOST}" \
-    "cd '$REMOTE_PATH' && php scripts/import_buyitforlife.php && php -r '
+    "cd '$REMOTE_PATH' && php -r '
+        if (!extension_loaded(\"curl\") || !extension_loaded(\"gd\") || !function_exists(\"imagewebp\")) {
+            fwrite(STDERR, \"Production PHP requires cURL and GD with WebP support.\\n\");
+            exit(1);
+        }
+    ' && php scripts/import_buyitforlife.php && php -r '
         require \"app/repository.php\";
         \$db = db();
         \$items = (int) \$db->query(\"SELECT COUNT(*) FROM items\")->fetchColumn();

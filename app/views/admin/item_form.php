@@ -36,7 +36,7 @@ $isEdit = !empty($item);
     </label>
     <label>Listing logo or image URL
         <input type="url" name="image_url" value="<?= e($item['image_url'] ?? '') ?>">
-        <small class="muted">Use a square image, ideally at least 512 x 512 px. It will fill the listing thumbnail.</small>
+        <small class="muted">The original is stored privately and local detail and thumbnail images are generated automatically.</small>
     </label>
     <?php if ($isEdit && !empty($item['url'])): ?>
         <div class="field-action">
