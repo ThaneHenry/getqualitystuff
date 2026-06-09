@@ -1,3 +1,7 @@
+<?php
+$this->section('content');
+?>
+<div class="page-layout">
 <section class="page-header about-header">
     <div>
         <p class="eyebrow">About / Brand</p>
@@ -167,3 +171,4 @@
         </article>
     </div>
 </section>
+</div>

@@ -1,3 +1,9 @@
+/* Page layout container */
+.page-layout {
+    width: min(var(--listing-width), 100% - 48px);
+    margin-inline: auto;
+}
+
 /* Site chrome and navigation */
 main,
 .site-header,
@@ -286,8 +292,7 @@ main,
 }
 
 .directory-results,
-.news-preview,
-.news-list {
+.news-preview {
     padding: 16px 0;
 }
 
@@ -558,6 +563,8 @@ main,
 .news-list {
     display: grid;
     gap: 14px;
+    max-width: var(--listing-width);
+    margin-inline: auto;
 }
 
 .news-card--full {

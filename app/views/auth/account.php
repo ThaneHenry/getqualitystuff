@@ -6,6 +6,7 @@
 /** @var array $categories */
 /** @var array $criteria */
 ?>
+<div class="page-layout">
 <section class="page-header account-header">
     <div>
         <p class="eyebrow">Account</p>
@@ -109,3 +110,4 @@
         <div><dt>Role</dt><dd><?= e(ucfirst((string) $user['role'])) ?></dd></div>
     </dl>
 </section>
+</div>

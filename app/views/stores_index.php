@@ -6,6 +6,7 @@
 /** @var array $pagination */
 /** @var string $paginationPath */
 ?>
+<div class="page-layout">
 <section class="page-header">
     <div>
         <p class="eyebrow">Stores</p>
@@ -51,4 +52,5 @@
         <?php endif; ?>
     </div>
     <?php $paginationItemLabel = 'store'; require __DIR__ . '/partials/pagination.php'; ?>
-</section>
+    </section>
+</div>

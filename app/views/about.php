@@ -1,3 +1,8 @@
+<?php /** @var array $featuredBrands */
+/** @var array $featuredStores */
+/** @var array $featuredItems */
+?>
+<div class="page-layout">
 <section class="page-header about-header">
     <div>
         <p class="eyebrow">About</p>
@@ -40,3 +45,4 @@
     <a class="button" href="/awards">Explore awards</a>
 </section>
 <?php $feedbackType = 'suggest_brand'; $feedbackEntityType = null; $feedbackEntityId = null; require __DIR__ . '/partials/feedback_form.php'; ?>
+</div>

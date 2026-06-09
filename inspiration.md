@@ -14,6 +14,8 @@ Design
 - [Base44](https://base44.com/)
 - [Happy Capy](https://happycapy.ai/)
 - [Rork](https://rork.com/)
+- [Fundraisly](https://fundraisly.com/)
+- [Stitch](https://stitch.withgoogle.com/)
 
 
 Content

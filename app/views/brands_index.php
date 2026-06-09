@@ -12,6 +12,7 @@ $resultCountLabel = $hasSearch
     ? ($totalResults === 1 ? 'result' : 'results')
     : ($totalResults === 1 ? 'brand' : 'brands');
 ?>
+<div class="page-layout">
 <section class="page-header">
     <div>
         <p class="eyebrow"><?= $hasSearch ? 'Results' : 'Brands' ?></p>
@@ -79,3 +80,4 @@ $resultCountLabel = $hasSearch
     </div>
     <?php $paginationItemLabel = $hasSearch ? 'result' : 'brand'; require __DIR__ . '/partials/pagination.php'; ?>
 </section>
+</div>

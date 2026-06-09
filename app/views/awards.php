@@ -1,4 +1,5 @@
 <?php /** @var array $awards */ ?>
+<div class="page-layout">
 <section class="page-header awards-header">
     <div>
         <p class="eyebrow">GQS awards</p>
@@ -28,4 +29,5 @@
             </div>
         </article>
     <?php endforeach; ?>
-</section>
+    </section>
+</div>

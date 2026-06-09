@@ -1,6 +1,7 @@
 <?php
 /** @var array $articles */
 ?>
+<div class="page-layout">
 <section class="page-header">
     <div>
         <p class="eyebrow">News</p>
@@ -25,3 +26,4 @@
         </article>
     <?php endif; ?>
 </section>
+</div>

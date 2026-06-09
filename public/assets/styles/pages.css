@@ -1,7 +1,7 @@
 /* Legal pages */
 .legal-document {
     display: grid;
-    grid-template-columns: minmax(0, 760px);
+    grid-template-columns: minmax(0, var(--listing-width));
     gap: 30px;
     padding: 54px 0 20px;
 }
@@ -200,10 +200,6 @@
 
 
 /* About, awards, and Brand guide */
-.about-header {
-    max-width: var(--search-width);
-    padding-top: 64px;
-}
 
 .page-intro {
     max-width: 720px;
@@ -268,12 +264,13 @@
     flex: 0 0 auto;
 }
 
-.awards-header {
-    max-width: var(--search-width);
+.awards-header,
+.about-header,
+.awards-note {
+    max-width: var(--listing-width);
 }
 
 .awards-note {
-    max-width: var(--search-width);
     margin: 0 0 28px;
     padding: 24px;
     border-left: 4px solid var(--accent);
