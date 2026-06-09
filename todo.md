@@ -4,10 +4,8 @@
 
 - When the search button is used on the non-home page, it should probably spawn a bit higher up, less vertically centered, to allow more view of the temporary results
 - improve hero. Now that we have 'get' as a logo, we can improve the copy in the hero seation. Instead of 'find better brands', we can animate through 'quality stuff' 'better brands' 'awesome bags' etc.
-- Tweak and simplify the navbar layout. Listings categories should be moved to the right of search, but be separated from the surrounding navbar sections either by a divider, or sufficient whitespace. So it should be: [Left section] Logo [Right section] Search | Brands / Stores / Items | News | Log in
 - review mobile UI. For example, logo is way too small on mobile. Consider navbar layout.
 - improve design of search insta results, they look a bit bland right now
-- remove 'We only use account access to sign you in. Browsing does not require an account.' from login modal.
 - Review what's happening with the 'listed' tag that shows in directories. This is not present on the home page listing cards. Why are they different?
 - Design some icons for awards
 

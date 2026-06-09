@@ -31,30 +31,31 @@ $globalSearchSuggestions = search_suggestions();
                 <?= $brandLogo ?>
             </span>
         </a>
-        <nav class="nav__browse" aria-label="Browse">
-            <details class="browse-menu">
-                <summary>Browse</summary>
-                <div class="browse-menu__panel">
+        <nav class="nav__utilities" aria-label="Primary">
+            <button class="nav-search" type="button" data-global-search-open>
+                <span>Search</span>
+                <svg viewBox="0 0 24 24" aria-hidden="true">
+                    <path d="m21 21-4.35-4.35"></path>
+                    <circle cx="11" cy="11" r="7"></circle>
+                </svg>
+            </button>
+            <div class="nav__browse">
+                <details class="browse-menu">
+                    <summary>Browse</summary>
+                    <div class="browse-menu__panel">
+                        <a href="/brands">Brands</a>
+                        <a href="/stores">Stores</a>
+                        <?php if ($capabilities['items']): ?><a href="/items">Items</a><?php endif; ?>
+                    </div>
+                </details>
+                <div class="nav__links">
                     <a href="/brands">Brands</a>
                     <a href="/stores">Stores</a>
                     <?php if ($capabilities['items']): ?><a href="/items">Items</a><?php endif; ?>
                 </div>
-            </details>
-            <div class="nav__links">
-                <a href="/brands">Brands</a>
-                <a href="/stores">Stores</a>
-                <?php if ($capabilities['items']): ?><a href="/items">Items</a><?php endif; ?>
             </div>
-        </nav>
-        <nav class="nav__utilities" aria-label="Primary">
-                <button class="nav-search" type="button" data-global-search-open>
-                    <span>Search</span>
-                    <svg viewBox="0 0 24 24" aria-hidden="true">
-                        <path d="m21 21-4.35-4.35"></path>
-                        <circle cx="11" cy="11" r="7"></circle>
-                    </svg>
-                </button>
-                <a class="nav__news" href="/news">News</a>
+            <a class="nav__news" href="/news">News</a>
+            <div class="nav__auth">
                 <?php if ($signedInUser): ?>
                     <details class="account-menu">
                         <summary aria-label="Open account menu">
@@ -76,6 +77,7 @@ $globalSearchSuggestions = search_suggestions();
                 <?php else: ?>
                     <a class="button button--quiet nav__login" href="/login?redirect=<?= e(urlencode($signedOutRedirect)) ?>" data-auth-open><?= icon_markup('login') ?> Log in</a>
                 <?php endif; ?>
+            </div>
                 <details class="mobile-menu">
                     <summary aria-label="Open menu">Menu</summary>
                     <nav class="mobile-menu__panel" aria-label="Mobile">
@@ -138,12 +140,11 @@ $globalSearchSuggestions = search_suggestions();
                     </label>
                     <button type="submit">Log in</button>
                 </form>
-                <div class="auth-dialog__footer">
-                    <a href="/forgot-password">Forgot password?</a>
-                    <span>New here? <a href="/register?redirect=<?= e(urlencode($signedOutRedirect)) ?>">Create an account</a></span>
-                </div>
-                <p class="account-entry__fineprint">We only use account access to sign you in. Browsing does not require an account.</p>
-            </div>
+<div class="auth-dialog__footer">
+                     <a href="/forgot-password">Forgot password?</a>
+                     <span>New here? <a href="/register?redirect=<?= e(urlencode($signedOutRedirect)) ?>">Create an account</a></span>
+                 </div>
+             </div>
         </dialog>
     <?php endif; ?>
 

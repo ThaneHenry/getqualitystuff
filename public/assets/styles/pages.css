@@ -866,7 +866,8 @@ main,
         display: none;
     }
 
-    .browse-menu {
+    .browse-menu,
+    .nav__browse {
         display: none;
     }
 
@@ -909,7 +910,8 @@ main,
 
     .nav__login,
     .nav__news,
-    .account-menu {
+    .account-menu,
+    .nav__auth {
         display: none;
     }
 

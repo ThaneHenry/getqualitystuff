@@ -13,5 +13,4 @@ $redirect = safe_redirect_path($redirect ?? null);
         <a class="button button--quiet" href="/login?redirect=<?= e(urlencode($redirect)) ?>" data-auth-open>Log in</a>
         <a class="button button--quiet" href="/register?redirect=<?= e(urlencode($redirect)) ?>">Create account</a>
     </div>
-    <p class="account-entry__fineprint">We only use account access to sign you in. Browsing does not require an account.</p>
 </section>
