@@ -1,3 +1,5 @@
+<?php /** @var string $title */ ?>
+<div class="page-layout">
 <article class="legal-document">
     <header class="legal-document__header">
         <p class="eyebrow">Legal</p>
@@ -79,3 +81,4 @@
         <p>These terms are governed by the laws of England and Wales. The courts of England and Wales will have jurisdiction, except that if you live in Scotland or Northern Ireland you may also bring proceedings in your local courts. Nothing in these terms affects any mandatory rights you have under the law where you live.</p>
     </section>
 </article>
+</div>

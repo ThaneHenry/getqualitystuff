@@ -1,3 +1,5 @@
+<?php /** @var string $title */ ?>
+<div class="page-layout">
 <article class="legal-document">
     <header class="legal-document__header">
         <p class="eyebrow">Legal</p>
@@ -80,3 +82,4 @@
         <p>We may update this policy as the service or law changes. We will post the updated version here and change the date above. Where appropriate, we will provide additional notice.</p>
     </section>
 </article>
+</div>
