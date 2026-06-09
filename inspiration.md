@@ -10,6 +10,11 @@ Design
 - [NASA](https://www.nasa.gov/)
 - [Intercom](https://www.intercom.com/)
 - [Product Hunt](https://www.producthunt.com/)
+- [Lovable](https://lovable.dev/)
+- [Base44](https://base44.com/)
+- [Happy Capy](https://happycapy.ai/)
+- [Rork](https://rork.com/)
+
 
 Content
 

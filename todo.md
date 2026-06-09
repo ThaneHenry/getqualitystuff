@@ -9,7 +9,7 @@
 - improve design of search insta results, they look a bit bland right now
 - remove 'We only use account access to sign you in. Browsing does not require an account.' from login modal.
 - Review what's happening with the 'listed' tag that shows in directories. This is not present on the home page listing cards. Why are they different?
-- The news page is also using wider containers. They should probably be aligned across the site to be more consistent. We should have a clear 'single column' layout, which applies to most of the key pages right now. Some pages that might want more dense information might want to make use of multiple columns, or mosaic layouts. Try to standardise some rules. For example, in the directory pages, the top section is in a wider container than the listings. This should probably not be the case.
+- The news page is also using wider containers. They should probably be aligned across the site to be more consistent. We should have a clear 'single column' layout, which applies to most of the key pages right now. Some pages that might want more dense information might want to make use of multiple columns, or mosaic layouts. Try to standardise some rules. For example, in the directory pages, the top section is in a wider container than the listings. This should probably not be the case. Also the privacy and terms pages.
 - Design some icons for awards
 
 # Content
