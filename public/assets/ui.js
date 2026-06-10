@@ -136,4 +136,21 @@
             }
         });
     });
+
+    const rotators = document.querySelectorAll('.hero-search__rotator');
+    if (rotators.length && !window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+        rotators.forEach((rotator) => {
+            const words = Array.from(rotator.querySelectorAll('.hero-search__rotator__word'));
+            if (words.length <= 1) {
+                return;
+            }
+            const advance = () => {
+                const exiting = rotator.querySelector('.hero-search__rotator__word.is-active') ?? words[0];
+                const next = words[(words.indexOf(exiting) + 1) % words.length];
+                exiting.classList.remove('is-active');
+                next.classList.add('is-active');
+            };
+            setInterval(advance, 2800);
+        });
+    }
 }());

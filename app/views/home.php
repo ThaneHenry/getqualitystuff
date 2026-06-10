@@ -58,7 +58,7 @@ foreach ($featuredItems as $item) {
 ?>
 <section class="hero-search">
     <div>
-        <h1>Find <span class="hero-search__better">better</span> brands.</h1>
+        <h1><span class="hero-search__rotator" role="text" aria-label="Quality stuff"><span class="hero-search__rotator__word is-active">quality stuff</span><span class="hero-search__rotator__word">better brands</span><span class="hero-search__rotator__word">awesome bags</span><span class="hero-search__rotator__word">top stores</span><span class="hero-search__rotator__word">rare finds</span></span></h1>
     </div>
     <form class="search-panel" method="get" action="/search" data-search-form>
         <div class="search-panel__main">

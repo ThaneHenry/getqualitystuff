@@ -37,7 +37,8 @@ a {
 
 .hero-search h1 {
     margin-inline: auto;
-    font-size: clamp(2.7rem, 6vw, 5.8rem);
+    max-width: 100%;
+    font-size: clamp(2.4rem, 6vw, 5rem);
 }
 
 .detail-header h1 {
@@ -55,15 +56,30 @@ main h3 {
     line-height: 1.25;
 }
 
-.hero-search__better {
+.hero-search__rotator {
     position: relative;
+    display: inline-grid;
+    vertical-align: bottom;
+}
+
+.hero-search__rotator__word {
+    grid-area: 1 / 1;
     display: inline-block;
-    color: var(--accent);
-    background: linear-gradient(105deg, var(--accent) 0%, var(--accent-dark) 45%, var(--leaf) 100%);
-    -webkit-background-clip: text;
-    background-clip: text;
-    -webkit-text-fill-color: transparent;
-    text-fill-color: transparent;
+    white-space: nowrap;
+    opacity: 0;
+    transform: translateY(110%);
+    transition: transform 0.45s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.35s ease;
+}
+
+.hero-search__rotator__word.is-active {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .hero-search__rotator__word {
+        transition: none;
+    }
 }
 .eyebrow {
     margin: 0 0 8px;

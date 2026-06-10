@@ -3,7 +3,6 @@
 # Design
 
 - When the search button is used on the non-home page, it should probably spawn a bit higher up, less vertically centered, to allow more view of the temporary results
-- improve hero. Now that we have 'get' as a logo, we can improve the copy in the hero seation. Instead of 'find better brands', we can animate through 'quality stuff' 'better brands' 'awesome bags' etc.
 - review mobile UI. For example, logo is way too small on mobile. Consider navbar layout.
 - improve design of search insta results, they look a bit bland right now
 - Review what's happening with the 'listed' tag that shows in directories. This is not present on the home page listing cards. Why are they different?
