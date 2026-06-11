@@ -24,6 +24,8 @@ rsync "${RSYNC_FLAGS[@]}" \
   -e "$SSH_COMMAND" \
   --exclude='.git/' \
   --exclude='.gitignore' \
+  --exclude='.kilo/' \
+  --exclude='.vscode/' \
   --exclude='.DS_Store' \
   --exclude='.dh-diag' \
   --exclude='.env' \
@@ -39,6 +41,8 @@ rsync "${RSYNC_FLAGS[@]}" \
   --exclude='scripts/*' \
   --exclude='storage/*.sqlite' \
   --exclude='storage/*.sqlite-*' \
+  --exclude='storage/.local-server.pid' \
+  --exclude='storage/mail.log' \
   --exclude='storage/item-images/' \
   --exclude='public/uploads/*' \
   ./ "${REMOTE_USER}@${REMOTE_HOST}:${REMOTE_PATH}"
